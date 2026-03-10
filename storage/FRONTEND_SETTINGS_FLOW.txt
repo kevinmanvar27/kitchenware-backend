@@ -1,0 +1,496 @@
+================================================================================
+                    FRONTEND SETTINGS FLOW DOCUMENTATION
+================================================================================
+
+This document describes the implementation of Frontend Access Permissions and
+Payment Method Visibility settings in the distributor-multivendor project.
+
+================================================================================
+                    PART 1: FRONTEND ACCESS PERMISSIONS
+================================================================================
+
+OVERVIEW
+--------
+Frontend Access Permissions control who can access the website/application.
+There are three modes available:
+
+1. OPEN FOR ALL (open_for_all)
+   - Anyone can view the website without restrictions
+   - New user registrations are auto-approved
+   - No login required to browse
+
+2. REGISTERED USERS ONLY (registered_users_only)
+   - Only users with valid credentials can access the site
+   - New registrations are BLOCKED
+   - Users must be created by admin and approved
+
+3. ADMIN APPROVAL REQUIRED (admin_approval_required)
+   - Users can register but need admin approval before accessing
+   - New registrations create unapproved accounts
+   - Admin must manually approve users in User Management panel
+
+
+CONFIGURATION LOCATION
+----------------------
+Admin Panel → Settings → Frontend Tab → Frontend Access Permissions
+
+Settings stored in database:
+- frontend_access_permission (string): 'open_for_all', 'registered_users_only', 'admin_approval_required'
+- pending_approval_message (text): Custom message shown to pending users
+
+
+FILES INVOLVED
+--------------
+
+1. MODELS
+   - app/Models/Setting.php
+     * Stores all settings including frontend_access_permission
+     * Has boolean casts for is_approved related fields
+   
+   - app/Models/User.php
+     * Has is_approved field (boolean, default: false)
+     * Determines if user can access the site
+
+2. MIDDLEWARE
+   - app/Http/Middleware/CheckFrontendAccess.php
+     * Checks frontend_access_permission setting
+     * Redirects unauthenticated users to login for restricted modes
+     * Shows pending-approval page for unapproved users
+     * Allows cart access for guests
+
+3. CONTROLLERS (WEB)
+   - app/Http/Controllers/Auth/UnifiedLoginController.php
+     * Handles login for all user types
+     * Checks approval status for 'admin_approval_required' mode
+     * Shows error message for unapproved users
+   
+   - app/Http/Controllers/Frontend/RegisterController.php
+     * Blocks registration for 'registered_users_only' mode
+     * Auto-approves users for 'open_for_all' mode
+     * Creates unapproved users for 'admin_approval_required' mode
+   
+   - app/Http/Controllers/Admin/UserController.php
+     * approve() - Approves a pending user
+     * disapprove() - Revokes user access
+     * store() - Creates users (admin-created users are auto-approved)
+
+   - app/Http/Controllers/Admin/SettingsController.php
+     * Saves frontend_access_permission and pending_approval_message
+
+4. CONTROLLERS (API)
+   - app/Http/Controllers/API/AuthController.php
+     * login() - Checks approval status, rejects unapproved users
+     * register() - Respects access permission modes
+     * checkApprovalStatus() - Returns user's approval status
+     * user() - Includes frontend_access info in response
+   
+   - app/Http/Controllers/API/AppConfigController.php
+     * appConfigPublic() - Returns frontend_access settings
+     * appConfig() - Returns frontend_access settings (authenticated)
+
+5. VIEWS
+   - resources/views/admin/settings/index.blade.php
+     * Frontend tab with access permission radio buttons
+     * Pending approval message textarea
+   
+   - resources/views/admin/users/index.blade.php
+     * Shows approval status (Approved/Pending)
+     * Approve button for pending users
+     * Revoke button for approved users
+   
+   - resources/views/errors/pending-approval.blade.php
+     * Error page shown to unapproved users
+
+6. ROUTES
+   Web Routes (routes/web.php):
+   - POST /admin/users/{user}/approve → UserController@approve
+   - POST /admin/users/{user}/disapprove → UserController@disapprove
+   
+   API Routes (routes/api.php):
+   - POST /api/v1/login → AuthController@login
+   - POST /api/v1/register → AuthController@register
+   - GET /api/v1/user → AuthController@user
+   - GET /api/v1/check-approval-status → AuthController@checkApprovalStatus
+   - GET /api/v1/app-config → AppConfigController@appConfigPublic
+
+
+FLOW DIAGRAMS
+-------------
+
+A. USER REGISTRATION FLOW (Web)
+   
+   User visits /register
+         |
+   RegisterController::showRegistrationForm()
+         |
+   Check frontend_access_permission
+         |
+   +-------------------------------------------------------------+
+   | registered_users_only?                                      |
+   |   YES → Redirect to login with error message                |
+   |   NO  → Show registration form                              |
+   +-------------------------------------------------------------+
+         |
+   User submits form
+         |
+   RegisterController::register()
+         |
+   +-------------------------------------------------------------+
+   | open_for_all?                                               |
+   |   YES → Create user with is_approved = TRUE                 |
+   |   NO  → Create user with is_approved = FALSE                |
+   +-------------------------------------------------------------+
+         |
+   Redirect to login with success message
+
+
+B. USER LOGIN FLOW (Web)
+   
+   User visits /login
+         |
+   UnifiedLoginController::showLoginForm()
+         |
+   User submits credentials
+         |
+   UnifiedLoginController::login()
+         |
+   Validate credentials
+         |
+   +-------------------------------------------------------------+
+   | Is user role 'user'?                                        |
+   |   YES → handleFrontendUserLogin()                           |
+   |   NO  → Handle admin/vendor login                           |
+   +-------------------------------------------------------------+
+         |
+   handleFrontendUserLogin()
+         |
+   +-------------------------------------------------------------+
+   | admin_approval_required AND NOT is_approved?                |
+   |   YES → Logout, show pending approval error                 |
+   |   NO  → Redirect to home page                               |
+   +-------------------------------------------------------------+
+
+
+C. API REGISTRATION FLOW
+   
+   POST /api/v1/register
+         |
+   AuthController::register()
+         |
+   Check frontend_access_permission
+         |
+   +-------------------------------------------------------------+
+   | registered_users_only?                                      |
+   |   YES → Return 403 error (registration disabled)            |
+   |   NO  → Continue                                            |
+   +-------------------------------------------------------------+
+         |
+   +-------------------------------------------------------------+
+   | open_for_all?                                               |
+   |   YES → Create user (is_approved=true), return token        |
+   |   NO  → Create user (is_approved=false), NO token returned  |
+   +-------------------------------------------------------------+
+
+
+D. API LOGIN FLOW
+   
+   POST /api/v1/login
+         |
+   AuthController::login()
+         |
+   Validate credentials
+         |
+   +-------------------------------------------------------------+
+   | Is user role 'user'?                                        |
+   |   YES → Check approval status                               |
+   |   NO  → Continue (admin/vendor bypass approval)             |
+   +-------------------------------------------------------------+
+         |
+   +-------------------------------------------------------------+
+   | (admin_approval_required OR registered_users_only)          |
+   | AND NOT is_approved?                                        |
+   |   YES → Return 403 error (pending approval)                 |
+   |   NO  → Return token and user data                          |
+   +-------------------------------------------------------------+
+
+
+E. ADMIN USER APPROVAL FLOW
+   
+   Admin visits /admin/users
+         |
+   UserController::index()
+         |
+   Shows list of users with approval status
+         |
+   +-------------------------------------------------------------+
+   | User is_approved = false?                                   |
+   |   → Show "Pending" badge + "Approve" button                 |
+   | User is_approved = true?                                    |
+   |   → Show "Approved" badge + "Revoke" button                 |
+   +-------------------------------------------------------------+
+         |
+   Admin clicks Approve/Revoke
+         |
+   UserController::approve() or UserController::disapprove()
+         |
+   Update user's is_approved field
+         |
+   Redirect back with success message
+
+
+================================================================================
+                    PART 2: PAYMENT METHOD VISIBILITY
+================================================================================
+
+OVERVIEW
+--------
+Payment Method Visibility settings control which payment options are shown
+to users on the checkout/cart page. There are three payment methods:
+
+1. Online Payment (show_online_payment)
+   - Shows "Online Payment" button for Razorpay/card payments
+
+2. Cash on Delivery (show_cod_payment)
+   - Shows "Cash on Delivery" button
+
+3. Send Proforma Invoice (show_invoice_payment)
+   - Shows "Send Proforma Invoice" button
+
+
+CONFIGURATION LOCATION
+----------------------
+Admin Panel → Settings → Frontend Tab → Payment Method Visibility
+
+Settings stored in database:
+- show_online_payment (boolean): default TRUE
+- show_cod_payment (boolean): default TRUE
+- show_invoice_payment (boolean): default TRUE
+
+
+FILES INVOLVED
+--------------
+
+1. DATABASE
+   - database/migrations/2025_11_14_100000_add_payment_method_visibility_to_settings_table.php
+     * Adds show_online_payment, show_cod_payment, show_invoice_payment columns
+     * All default to TRUE
+
+2. MODEL
+   - app/Models/Setting.php
+     * Has boolean casts for payment visibility fields:
+       - 'show_online_payment' => 'boolean'
+       - 'show_cod_payment' => 'boolean'
+       - 'show_invoice_payment' => 'boolean'
+
+3. HELPER FUNCTIONS
+   - app/Helpers/SettingsHelper.php
+     * show_online_payment() - Returns boolean for online payment visibility
+     * show_cod_payment() - Returns boolean for COD visibility
+     * show_invoice_payment() - Returns boolean for invoice visibility
+     * Uses filter_var() for proper boolean conversion
+
+4. CONTROLLER
+   - app/Http/Controllers/Admin/SettingsController.php
+     * Uses $request->boolean() for proper checkbox handling
+     * Saves: show_online_payment, show_cod_payment, show_invoice_payment
+
+5. VIEWS
+   - resources/views/admin/settings/index.blade.php
+     * Frontend tab → Payment Method Visibility section
+     * Three toggle switches for each payment method
+   
+   - resources/views/frontend/cart.blade.php
+     * Uses helper functions to conditionally show payment buttons:
+       @if(show_online_payment())
+       @if(show_cod_payment())
+       @if(show_invoice_payment())
+
+6. API
+   - app/Http/Controllers/API/AppConfigController.php
+     * appConfigPublic() - Returns payment_methods object
+     * appConfig() - Returns payment_methods object (authenticated)
+     * getBooleanSetting() - Helper for boolean conversion
+
+
+FLOW DIAGRAM
+------------
+
+A. ADMIN CONFIGURES PAYMENT VISIBILITY
+   
+   Admin visits /admin/settings
+         |
+   SettingsController::index()
+         |
+   Shows settings form with Frontend tab
+         |
+   Admin toggles payment method switches
+         |
+   Admin clicks Save
+         |
+   SettingsController::update()
+         |
+   $setting->show_online_payment = $request->boolean('show_online_payment');
+   $setting->show_cod_payment = $request->boolean('show_cod_payment');
+   $setting->show_invoice_payment = $request->boolean('show_invoice_payment');
+         |
+   $setting->save()
+         |
+   Redirect with success message
+
+
+B. USER VIEWS CART PAGE (Web)
+   
+   User visits /cart
+         |
+   CartController::index()
+         |
+   Renders cart.blade.php
+         |
+   +-------------------------------------------------------------+
+   | @if(show_online_payment())                                  |
+   |   → Show "Online Payment" button                            |
+   | @endif                                                      |
+   |                                                             |
+   | @if(show_cod_payment())                                     |
+   |   → Show "Cash on Delivery" button                          |
+   | @endif                                                      |
+   |                                                             |
+   | @if(show_invoice_payment())                                 |
+   |   → Show "Send Proforma Invoice" button                     |
+   | @endif                                                      |
+   +-------------------------------------------------------------+
+
+
+C. MOBILE APP FETCHES PAYMENT CONFIG (API)
+   
+   GET /api/v1/app-config
+         |
+   AppConfigController::appConfigPublic()
+         |
+   Returns JSON:
+   {
+     "payment_methods": {
+       "show_online_payment": true,
+       "show_cod_payment": true,
+       "show_invoice_payment": false
+     }
+   }
+         |
+   Mobile app conditionally renders payment buttons
+
+
+HELPER FUNCTION IMPLEMENTATION
+------------------------------
+
+function show_online_payment()
+{
+    $value = setting('show_online_payment', true);
+    
+    // If already boolean, return as is
+    if (is_bool($value)) {
+        return $value;
+    }
+    
+    // Handle string "0", "1", true, false, 0, 1
+    return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+}
+
+This ensures proper boolean conversion regardless of how the value is stored
+in the database (as boolean, integer 0/1, or string "0"/"1").
+
+
+================================================================================
+                    TROUBLESHOOTING
+================================================================================
+
+ISSUE: Payment visibility settings not saving correctly
+SOLUTION: 
+- Ensure Setting model has boolean casts
+- Use $request->boolean() instead of $request->input() for checkboxes
+- Clear cache: php artisan cache:clear
+
+ISSUE: Users can't login even though approved
+SOLUTION:
+- Check frontend_access_permission setting
+- Verify user's is_approved field in database
+- Check if middleware is applied to routes
+
+ISSUE: API returns wrong payment visibility values
+SOLUTION:
+- Use getBooleanSetting() helper method
+- Ensure Setting model has proper casts
+- Clear config cache: php artisan config:clear
+
+ISSUE: Registration blocked unexpectedly
+SOLUTION:
+- Check frontend_access_permission setting
+- For 'registered_users_only', registration is intentionally blocked
+- Change to 'open_for_all' or 'admin_approval_required' to allow registration
+
+
+================================================================================
+                    API RESPONSE EXAMPLES
+================================================================================
+
+1. GET /api/v1/app-config (Payment Methods)
+{
+  "success": true,
+  "data": {
+    "payment_methods": {
+      "show_online_payment": true,
+      "show_cod_payment": true,
+      "show_invoice_payment": false
+    },
+    "frontend_access": {
+      "permission": "admin_approval_required",
+      "pending_approval_message": "Your account is pending approval..."
+    }
+  }
+}
+
+2. POST /api/v1/login (Unapproved User)
+{
+  "success": false,
+  "message": "Account Pending Approval",
+  "data": {
+    "error": "Your account is pending approval...",
+    "approval_status": "pending",
+    "requires_approval": true
+  }
+}
+
+3. GET /api/v1/check-approval-status
+{
+  "success": true,
+  "data": {
+    "is_approved": false,
+    "frontend_access_permission": "admin_approval_required",
+    "requires_approval": true,
+    "can_access": false,
+    "pending_message": "Your account is pending approval..."
+  }
+}
+
+
+================================================================================
+                    SUMMARY
+================================================================================
+
+Frontend Access Permissions:
+- 3 modes: open_for_all, registered_users_only, admin_approval_required
+- Controls who can register and access the site
+- Admin can approve/disapprove users in User Management
+- API endpoints respect these settings
+
+Payment Method Visibility:
+- 3 settings: show_online_payment, show_cod_payment, show_invoice_payment
+- Controls which payment buttons appear on cart/checkout
+- Uses boolean casts and proper checkbox handling
+- Available via API for mobile apps
+
+Both features are configured in:
+Admin Panel → Settings → Frontend Tab
+
+================================================================================
+                    END OF DOCUMENTATION
+================================================================================

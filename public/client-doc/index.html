@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributor App - Client Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #FF6B00;
+            --primary-dark: #e55f00;
+            --primary-light: #ff8533;
+            --secondary-color: #333333;
+            --secondary-light: #4a4a4a;
+            --bg-light: #ededed;
+            --bg-white: #ffffff;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-muted: #888888;
+            --gradient-primary: linear-gradient(135deg, #FF6B00 0%, #ff8533 50%, #FF6B00 100%);
+            --gradient-dark: linear-gradient(135deg, #333333 0%, #4a4a4a 100%);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-orange: 0 10px 40px -10px rgba(255, 107, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-white);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FF6B00' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(237, 237, 237, 0.8);
+            z-index: 1000;
+            padding: 0 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            animation: logoShine 3s infinite;
+        }
+
+        @keyframes logoShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .logo-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .logo-text span {
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--secondary-color);
+            padding: 0.5rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 8rem 1.5rem 5rem;
+            background: var(--bg-light);
+            overflow: hidden;
+        }
+
+        /* Animated SVG Background */
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .hero-bg svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .floating-shape {
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .floating-shape:nth-child(1) { animation-delay: 0s; }
+        .floating-shape:nth-child(2) { animation-delay: -5s; }
+        .floating-shape:nth-child(3) { animation-delay: -10s; }
+        .floating-shape:nth-child(4) { animation-delay: -15s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(20px, -30px) rotate(5deg); }
+            50% { transform: translate(-10px, 20px) rotate(-5deg); }
+            75% { transform: translate(30px, 10px) rotate(3deg); }
+        }
+
+        /* Animated Circles */
+        .circle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        .circle-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.1) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .circle-2 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.08) 0%, transparent 70%);
+            bottom: 10%;
+            left: -50px;
+            animation-delay: -2s;
+        }
+
+        .circle-3 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(51, 51, 51, 0.05) 0%, transparent 70%);
+            top: 40%;
+            right: 20%;
+            animation-delay: -1s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-content {
+            max-width: 1000px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-white);
+            color: var(--primary-color);
+            padding: 0.6rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-badge svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--primary-color);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            animation: fadeInUp 0.8s ease 0.1s both;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-orange);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px -10px rgba(255, 107, 0, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-white);
+            color: var(--secondary-color);
+            border: 2px solid var(--bg-light);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 1px solid rgba(51, 51, 51, 0.1);
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Sections */
+        section {
+            padding: 6rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: rgba(255, 107, 0, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .section-header p {
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 1.15rem;
+        }
+
+        /* Challenge Section */
+        .challenge-section {
+            background: var(--bg-white);
+            position: relative;
+        }
+
+        .challenge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .challenge-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border: 1px solid transparent;
+        }
+
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            transform: scaleY(0);
+            transition: transform 0.4s ease;
+        }
+
+        .challenge-card:hover {
+            background: var(--bg-white);
+            border-color: rgba(255, 107, 0, 0.2);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .challenge-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .challenge-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--bg-white);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .challenge-card:hover .challenge-icon {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .challenge-card:hover .challenge-icon span {
+            filter: grayscale(1) brightness(10);
+        }
+
+        .challenge-card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .challenge-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Solution Section */
+        .solution-section {
+            background: var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solution-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23FF6B00' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .solution-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .solution-text h2 {
+            color: white;
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .solution-text h2 span {
+            color: var(--primary-color);
+        }
+
+        .solution-text p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .solution-features {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .solution-feature {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+        }
+
+        .solution-feature .check {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .solution-feature .check svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+
+        .solution-graphic {
+            position: relative;
+        }
+
+        .solution-graphic svg {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Benefits Section */
+        .benefits-section {
+            background: var(--bg-light);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .benefits-column {
+            background: var(--bg-white);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .benefits-column-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--bg-light);
+        }
+
+        .benefits-column-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-orange);
+        }
+
+        .benefits-column-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .benefits-column-header h3 {
+            font-size: 1.35rem;
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .benefit-item:hover {
+            background: var(--bg-light);
+            border-color: rgba(255, 107, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .benefit-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .benefit-item:hover .benefit-icon {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .benefit-item:hover .benefit-icon span {
+            filter: grayscale(1) brightness(10);
+        }
+
+        .benefit-content h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .benefit-content p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Features Section */
+        .features-section {
+            background: var(--bg-white);
+            position: relative;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-light);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.1) 0%, transparent 70%);
+            transform: translate(30%, -30%);
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-white);
+            border-color: rgba(255, 107, 0, 0.3);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-card:hover::after {
+            transform: translate(20%, -20%) scale(1.5);
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-number {
+            width: 56px;
+            height: 56px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.35rem;
+            box-shadow: var(--shadow-orange);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-number {
+            transform: rotate(-5deg) scale(1.1);
+        }
+
+        .feature-header h3 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .feature-list {
+            list-style: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-list li {
+            padding: 0.6rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.15;
+        }
+
+        .feature-list li::after {
+            content: '✓';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .feature-list li:hover {
+            transform: translateX(5px);
+            color: var(--primary-color);
+        }
+
+        /* Ease of Use Section */
+        .ease-section {
+            background: var(--bg-light);
+        }
+
+        .ease-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .ease-card {
+            background: var(--bg-white);
+            border-radius: 24px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ease-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .ease-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .ease-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .ease-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--bg-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .ease-icon::before {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            border: 2px dashed var(--primary-color);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .ease-card:hover .ease-icon {
+            background: rgba(255, 107, 0, 0.1);
+            transform: scale(1.1);
+        }
+
+        .ease-card:hover .ease-icon::before {
+            opacity: 0.5;
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .ease-icon svg {
+            width: 48px;
+            height: 48px;
+            fill: var(--primary-color);
+        }
+
+        .ease-card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .ease-card ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .ease-card ul li {
+            padding: 0.6rem 0;
+            padding-left: 1.75rem;
+            position: relative;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .ease-card ul li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.5rem;
+            line-height: 1;
+            top: 0.5rem;
+        }
+
+        /* Security Section */
+        .security-section {
+            background: var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .security-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.1) 0%, transparent 60%);
+            animation: pulse 8s infinite ease-in-out;
+        }
+
+        .security-section .section-header h2 {
+            color: white;
+        }
+
+        .security-section .section-header p {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .security-section .section-tag {
+            background: rgba(255, 107, 0, 0.2);
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .security-item {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .security-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .security-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 107, 0, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .security-item:hover .security-icon {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .security-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .security-item:hover .security-icon svg {
+            fill: white;
+        }
+
+        .security-item h4 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .security-item p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Tech Stack Section */
+        .tech-section {
+            background: var(--bg-light);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tech-card {
+            background: var(--bg-white);
+            border-radius: 20px;
+            padding: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tech-card:hover {
+            border-color: rgba(255, 107, 0, 0.3);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tech-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--bg-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover .tech-icon {
+            background: var(--primary-color);
+        }
+
+        .tech-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover .tech-icon svg {
+            fill: white;
+        }
+
+        .tech-info h4 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .tech-badge {
+            display: inline-block;
+            background: rgba(255, 107, 0, 0.1);
+            color: var(--primary-color);
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            background: var(--bg-white);
+        }
+
+        .timeline {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 28px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--bg-light);
+            border-radius: 4px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            z-index: 1;
+            box-shadow: var(--shadow-orange);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover .timeline-marker {
+            transform: scale(1.15);
+        }
+
+        .timeline-content {
+            background: var(--bg-light);
+            padding: 1.75rem;
+            border-radius: 20px;
+            flex: 1;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .timeline-item:hover .timeline-content {
+            background: var(--bg-white);
+            border-color: rgba(255, 107, 0, 0.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .timeline-content h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.35rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .timeline-content .duration {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: var(--gradient-primary);
+            position: relative;
+            overflow: hidden;
+            padding: 6rem 1.5rem;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta-section h2 {
+            color: white;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+
+        .cta-highlights {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .cta-highlight {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .cta-highlight .check {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cta-highlight .check svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            color: var(--primary-color);
+            padding: 1.25rem 2.5rem;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--primary-color);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary-color);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 4rem 1.5rem 2rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            padding-bottom: 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-brand .logo {
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand .logo-text {
+            color: white;
+        }
+
+        .footer-brand p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .footer-links h4 {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links ul li a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links ul li a:hover {
+            color: var(--primary-color);
+            padding-left: 5px;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .solution-content {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .solution-graphic {
+                order: -1;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 80px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 1.5rem;
+                gap: 0;
+                border-bottom: 1px solid var(--bg-light);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links li {
+                padding: 1rem 0;
+                border-bottom: 1px solid var(--bg-light);
+            }
+
+            .nav-links li:last-child {
+                border-bottom: none;
+            }
+
+            .nav-links a::after {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero {
+                padding: 7rem 1.5rem 4rem;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 2rem;
+            }
+
+            .stat-item {
+                flex: 1 1 40%;
+            }
+
+            section {
+                padding: 4rem 0;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline::before {
+                left: 26px;
+            }
+
+            .timeline-marker {
+                width: 56px;
+                height: 56px;
+            }
+
+            .timeline-item {
+                gap: 1.5rem;
+            }
+
+            .footer-content {
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .challenge-grid,
+            .benefits-grid,
+            .ease-grid,
+            .security-grid,
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-highlights {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .navbar,
+            .hero-bg,
+            .circle-container {
+                display: none;
+            }
+
+            .hero {
+                padding-top: 2rem;
+                min-height: auto;
+            }
+
+            section {
+                padding: 2rem 0;
+            }
+
+            .feature-card,
+            .challenge-card,
+            .ease-card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <span class="logo-text">Distributor<span>App</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#challenges">Challenges</a></li>
+                <li><a href="#benefits">Benefits</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#salary">Salary</a></li>
+                <li><a href="#attendance">Attendance</a></li>
+                <li><a href="#technology">Technology</a></li>
+                <li><a href="#timeline">Timeline</a></li>
+            </ul>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-bg">
+            <div class="circle-container">
+                <div class="circle circle-1"></div>
+                <div class="circle circle-2"></div>
+                <div class="circle circle-3"></div>
+            </div>
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FF6B00;stop-opacity:0.1" />
+                        <stop offset="100%" style="stop-color:#FF6B00;stop-opacity:0" />
+                    </linearGradient>
+                </defs>
+                <path class="floating-shape" d="M100,400 Q300,200 500,400 T900,400" stroke="url(#grad1)" stroke-width="2" fill="none" opacity="0.5"/>
+                <path class="floating-shape" d="M0,600 Q400,400 800,600 T1200,500" stroke="url(#grad1)" stroke-width="1.5" fill="none" opacity="0.3"/>
+                <circle class="floating-shape" cx="150" cy="150" r="80" fill="url(#grad1)" opacity="0.3"/>
+                <circle class="floating-shape" cx="1050" cy="650" r="120" fill="url(#grad1)" opacity="0.2"/>
+            </svg>
+        </div>
+        <div class="hero-content">
+            <span class="hero-badge">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5M2 17l10 5 10-5M2 12l10 5 10-5-3.58-1.32L12 20l-8-8z"/></svg>
+                B2B E-Commerce Platform
+            </span>
+            <h1>Transform Your <span>Distribution</span> Business</h1>
+            <p class="hero-subtitle">
+                A comprehensive platform designed to streamline operations, enhance customer relationships, 
+                and accelerate growth through modern web and mobile solutions.
+            </p>
+            <div class="hero-cta">
+                <a href="#features" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                    Explore Features
+                </a>
+                <a href="#timeline" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    View Timeline
+                </a>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Order Availability</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Digital Workflow</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">Real-time</div>
+                    <div class="stat-label">Inventory Tracking</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">PDF</div>
+                    <div class="stat-label">Invoice Generation</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Challenges Section -->
+    <section class="challenge-section" id="challenges">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">The Problem</span>
+                <h2>Challenges We Address</h2>
+                <p>Distribution businesses face significant operational challenges in today's fast-paced market</p>
+            </div>
+            <div class="challenge-grid">
+                <div class="challenge-card">
+                    <div class="challenge-icon"><span>📋</span></div>
+                    <h3>Manual Order Processing</h3>
+                    <p>Time-consuming phone calls, emails, and paper-based orders lead to errors, delays, and frustrated customers.</p>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon"><span>📦</span></div>
+                    <h3>Inventory Visibility</h3>
+                    <p>Lack of real-time stock information causes overselling, stockouts, and customer dissatisfaction.</p>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon"><span>🧾</span></div>
+                    <h3>Invoice Management</h3>
+                    <p>Paper invoices are prone to loss, delays, and tracking difficulties affecting cash flow.</p>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon"><span>📢</span></div>
+                    <h3>Customer Communication</h3>
+                    <p>Difficulty in reaching customers with updates, promotions, and important announcements.</p>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon"><span>📈</span></div>
+                    <h3>Scalability Issues</h3>
+                    <p>Traditional methods cannot keep pace with business growth and increasing order volumes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution-section" id="solution">
+        <div class="container">
+            <div class="solution-content">
+                <div class="solution-text">
+                    <span class="section-tag">The Solution</span>
+                    <h2>One Platform, <span>Endless</span> Possibilities</h2>
+                    <p>
+                        The Distributor App addresses these challenges head-on by providing a unified digital platform 
+                        that connects distributors with their customers seamlessly.
+                    </p>
+                    <div class="solution-features">
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>24/7 Online Ordering System</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Real-time Inventory Tracking</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Automated Invoice Generation</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Push Notifications & Alerts</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Mobile App for iOS & Android</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="solution-graphic">
+                    <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Dashboard Illustration -->
+                        <defs>
+                            <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4a4a4a"/>
+                                <stop offset="100%" style="stop-color:#333333"/>
+                            </linearGradient>
+                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="10" stdDeviation="20" flood-opacity="0.3"/>
+                            </filter>
+                        </defs>
+                        
+                        <!-- Laptop -->
+                        <g filter="url(#shadow)">
+                            <rect x="50" y="50" width="300" height="200" rx="10" fill="url(#screenGrad)"/>
+                            <rect x="60" y="60" width="280" height="180" rx="5" fill="#ededed"/>
+                            
+                            <!-- Screen Content -->
+                            <rect x="70" y="70" width="120" height="20" rx="3" fill="#FF6B00" opacity="0.8"/>
+                            <rect x="70" y="100" width="260" height="8" rx="2" fill="#333333" opacity="0.2"/>
+                            <rect x="70" y="115" width="200" height="8" rx="2" fill="#333333" opacity="0.15"/>
+                            
+                            <!-- Chart -->
+                            <rect x="70" y="140" width="120" height="90" rx="5" fill="white"/>
+                            <rect x="80" y="200" width="15" height="20" fill="#FF6B00"/>
+                            <rect x="100" y="180" width="15" height="40" fill="#FF6B00" opacity="0.7"/>
+                            <rect x="120" y="165" width="15" height="55" fill="#FF6B00" opacity="0.5"/>
+                            <rect x="140" y="150" width="15" height="70" fill="#FF6B00"/>
+                            <rect x="160" y="170" width="15" height="50" fill="#FF6B00" opacity="0.8"/>
+                            
+                            <!-- Stats Cards -->
+                            <rect x="200" y="140" width="130" height="40" rx="5" fill="white"/>
+                            <circle cx="220" cy="160" r="12" fill="#FF6B00" opacity="0.2"/>
+                            <rect x="240" y="152" width="60" height="6" rx="2" fill="#333333" opacity="0.3"/>
+                            <rect x="240" y="162" width="50" height="6" rx="2" fill="#FF6B00"/>
+                            
+                            <rect x="200" y="190" width="130" height="40" rx="5" fill="white"/>
+                            <circle cx="220" cy="210" r="12" fill="#FF6B00" opacity="0.2"/>
+                            <rect x="240" y="202" width="60" height="6" rx="2" fill="#333333" opacity="0.3"/>
+                            <rect x="240" y="212" width="50" height="6" rx="2" fill="#FF6B00"/>
+                            
+                            <!-- Laptop Base -->
+                            <path d="M30 250 L370 250 L390 280 L10 280 Z" fill="#4a4a4a"/>
+                            <ellipse cx="200" cy="265" rx="40" ry="5" fill="#333333"/>
+                        </g>
+                        
+                        <!-- Mobile Phone -->
+                        <g filter="url(#shadow)" transform="translate(320, 100)">
+                            <rect x="0" y="0" width="100" height="180" rx="15" fill="#333333"/>
+                            <rect x="5" y="25" width="90" height="130" rx="3" fill="#ededed"/>
+                            
+                            <!-- Phone Content -->
+                            <rect x="10" y="30" width="80" height="15" rx="2" fill="#FF6B00"/>
+                            <rect x="10" y="50" width="80" height="30" rx="5" fill="white"/>
+                            <rect x="15" y="55" width="50" height="5" rx="1" fill="#333333" opacity="0.3"/>
+                            <rect x="15" y="65" width="30" height="10" rx="2" fill="#FF6B00"/>
+                            
+                            <rect x="10" y="85" width="80" height="30" rx="5" fill="white"/>
+                            <rect x="15" y="90" width="50" height="5" rx="1" fill="#333333" opacity="0.3"/>
+                            <rect x="15" y="100" width="40" height="10" rx="2" fill="#FF6B00" opacity="0.7"/>
+                            
+                            <rect x="10" y="120" width="80" height="30" rx="5" fill="white"/>
+                            <rect x="15" y="125" width="50" height="5" rx="1" fill="#333333" opacity="0.3"/>
+                            <rect x="15" y="135" width="35" height="10" rx="2" fill="#FF6B00" opacity="0.5"/>
+                            
+                            <!-- Phone Notch -->
+                            <rect x="35" y="5" width="30" height="8" rx="4" fill="#1a1a1a"/>
+                            <!-- Home Button -->
+                            <circle cx="50" cy="167" r="8" fill="#4a4a4a"/>
+                        </g>
+                        
+                        <!-- Floating Elements -->
+                        <g class="floating-shape">
+                            <circle cx="450" cy="80" r="25" fill="#FF6B00" opacity="0.2"/>
+                            <path d="M440 80 L450 70 L460 80 L450 90 Z" fill="#FF6B00"/>
+                        </g>
+                        <g class="floating-shape">
+                            <circle cx="30" cy="320" r="20" fill="#FF6B00" opacity="0.15"/>
+                        </g>
+                        <g class="floating-shape">
+                            <rect x="420" y="300" width="40" height="40" rx="10" fill="#FF6B00" opacity="0.1" transform="rotate(15 440 320)"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits-section" id="benefits">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Value Proposition</span>
+                <h2>Key Benefits</h2>
+                <p>Discover how the Distributor App transforms your business operations</p>
+            </div>
+            <div class="benefits-grid">
+                <div class="benefits-column">
+                    <div class="benefits-column-header">
+                        <div class="benefits-column-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                        </div>
+                        <h3>For Your Business</h3>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>💰</span></div>
+                        <div class="benefit-content">
+                            <h4>Reduced Operational Costs</h4>
+                            <p>Eliminate manual data entry and minimize order errors</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>📈</span></div>
+                        <div class="benefit-content">
+                            <h4>Increased Sales</h4>
+                            <p>24/7 ordering means customers order anytime, anywhere</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>💵</span></div>
+                        <div class="benefit-content">
+                            <h4>Improved Cash Flow</h4>
+                            <p>Faster invoicing and clear payment tracking</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>📊</span></div>
+                        <div class="benefit-content">
+                            <h4>Better Inventory Control</h4>
+                            <p>Low stock alerts prevent stockouts and lost sales</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>🚀</span></div>
+                        <div class="benefit-content">
+                            <h4>Scalable Growth</h4>
+                            <p>Handle more orders without proportional staff increases</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="benefits-column">
+                    <div class="benefits-column-header">
+                        <div class="benefits-column-icon">
+                            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        </div>
+                        <h3>For Your Customers</h3>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>🌐</span></div>
+                        <div class="benefit-content">
+                            <h4>Convenience</h4>
+                            <p>Browse and order from any device, anytime</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>👁️</span></div>
+                        <div class="benefit-content">
+                            <h4>Transparency</h4>
+                            <p>Real-time pricing, stock, and order status</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>🔧</span></div>
+                        <div class="benefit-content">
+                            <h4>Self-Service</h4>
+                            <p>Access invoices and manage profiles independently</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>⭐</span></div>
+                        <div class="benefit-content">
+                            <h4>Personalized Experience</h4>
+                            <p>Custom discounts based on relationship</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Capabilities</span>
+                <h2>Core Features</h2>
+                <p>A comprehensive suite of tools to power your distribution business</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">1</div>
+                        <h3>Product Catalog</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Organized categories & subcategories</li>
+                        <li>Rich product details with images</li>
+                        <li>Multiple product gallery images</li>
+                        <li>Real-time stock management</li>
+                        <li>Low-stock alerts & notifications</li>
+                        <li>SEO optimization support</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">2</div>
+                        <h3>User Management</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Customer registration & approval</li>
+                        <li>Role-based access control</li>
+                        <li>User groups for communications</li>
+                        <li>Complete customer profiles</li>
+                        <li>Individual discount settings</li>
+                        <li>Staff management capabilities</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">3</div>
+                        <h3>Shopping & Orders</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Intuitive shopping cart</li>
+                        <li>Wishlist functionality</li>
+                        <li>Flexible quantity management</li>
+                        <li>Guest cart migration</li>
+                        <li>Real-time price calculations</li>
+                        <li>Order history access</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">4</div>
+                        <h3>Invoice & Billing</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Proforma invoice generation</li>
+                        <li>Order status tracking workflow</li>
+                        <li>Payment tracking & balances</li>
+                        <li>Professional PDF downloads</li>
+                        <li>GST/Non-GST invoice options</li>
+                        <li>Invoice history management</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">5</div>
+                        <h3>Coupons & Discounts</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Percentage or fixed discounts</li>
+                        <li>Usage limit controls</li>
+                        <li>Validity period scheduling</li>
+                        <li>Minimum order requirements</li>
+                        <li>Maximum discount caps</li>
+                        <li>Per-user usage limits</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">6</div>
+                        <h3>Notifications</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Individual customer notifications</li>
+                        <li>Group broadcast messaging</li>
+                        <li>Firebase Cloud Messaging</li>
+                        <li>Notification history tracking</li>
+                        <li>Read/unread status management</li>
+                        <li>Device token management</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">7</div>
+                        <h3>Content Management</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Custom page creation</li>
+                        <li>Centralized media library</li>
+                        <li>Dynamic theme customization</li>
+                        <li>Color & font settings</li>
+                        <li>Responsive design controls</li>
+                        <li>Brand identity management</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">8</div>
+                        <h3>Mobile App Support</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Complete RESTful API</li>
+                        <li>Flutter app compatible</li>
+                        <li>iOS & Android support</li>
+                        <li>Secure token authentication</li>
+                        <li>Offline-friendly design</li>
+                        <li>API documentation (Swagger)</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">9</div>
+                        <h3>Admin Dashboard</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Sales & performance overview</li>
+                        <li>Centralized user management</li>
+                        <li>Business settings control</li>
+                        <li>Lead management system</li>
+                        <li>Permission configuration</li>
+                        <li>Activity monitoring</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">10</div>
+                        <h3>Salary Management</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Base salary & rate setup</li>
+                        <li>Auto daily/half-day rate calculation</li>
+                        <li>Monthly payroll processing</li>
+                        <li>Attendance-based salary calculation</li>
+                        <li>Deductions & bonus management</li>
+                        <li>PDF salary slip generation</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-number">11</div>
+                        <h3>Attendance Management</h3>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Visual calendar view</li>
+                        <li>Multiple status types</li>
+                        <li>Check-in/check-out tracking</li>
+                        <li>Bulk attendance marking</li>
+                        <li>Monthly attendance reports</li>
+                        <li>Salary system integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Salary Management Section -->
+    <section class="solution-section" id="salary">
+        <div class="container">
+            <div class="solution-content">
+                <div class="solution-text">
+                    <span class="section-tag">HR Module</span>
+                    <h2>Salary <span>Management</span></h2>
+                    <p>
+                        A comprehensive payroll system that automates salary calculations based on attendance, 
+                        handles mid-month salary changes, and generates professional salary slips.
+                    </p>
+                    <div class="solution-features">
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Base Salary & Working Days Configuration</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Auto Daily & Half-Day Rate Calculation</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Attendance-Based Salary Calculation</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Mid-Month Salary Change Support</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Deductions & Bonus Management</span>
+                        </div>
+                        <div class="solution-feature">
+                            <span class="check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </span>
+                            <span>Payment Tracking & PDF Salary Slips</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="solution-graphic">
+                    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="salaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FF6B00;stop-opacity:0.2"/>
+                                <stop offset="100%" style="stop-color:#FF6B00;stop-opacity:0.05"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Salary Slip Illustration -->
+                        <rect x="50" y="30" width="300" height="240" rx="10" fill="white" stroke="#ededed" stroke-width="2"/>
+                        <rect x="50" y="30" width="300" height="50" rx="10" fill="url(#salaryGrad)"/>
+                        <rect x="70" y="45" width="120" height="8" rx="2" fill="#FF6B00"/>
+                        <rect x="70" y="58" width="80" height="6" rx="2" fill="#333" opacity="0.3"/>
+                        <!-- Salary Details -->
+                        <rect x="70" y="100" width="100" height="6" rx="2" fill="#333" opacity="0.2"/>
+                        <rect x="250" y="100" width="80" height="6" rx="2" fill="#FF6B00"/>
+                        <rect x="70" y="120" width="80" height="6" rx="2" fill="#333" opacity="0.2"/>
+                        <rect x="250" y="120" width="60" height="6" rx="2" fill="#FF6B00" opacity="0.7"/>
+                        <rect x="70" y="140" width="90" height="6" rx="2" fill="#333" opacity="0.2"/>
+                        <rect x="250" y="140" width="70" height="6" rx="2" fill="#FF6B00" opacity="0.5"/>
+                        <line x1="70" y1="165" x2="330" y2="165" stroke="#ededed" stroke-width="2"/>
+                        <rect x="70" y="180" width="60" height="6" rx="2" fill="#333" opacity="0.2"/>
+                        <rect x="250" y="180" width="50" height="6" rx="2" fill="#e53935"/>
+                        <line x1="70" y1="205" x2="330" y2="205" stroke="#ededed" stroke-width="2"/>
+                        <rect x="70" y="220" width="80" height="10" rx="2" fill="#333" opacity="0.4"/>
+                        <rect x="230" y="218" width="100" height="14" rx="4" fill="#FF6B00"/>
+                        <!-- Floating Elements -->
+                        <circle cx="30" cy="150" r="15" fill="#FF6B00" opacity="0.1"/>
+                        <circle cx="380" cy="80" r="20" fill="#FF6B00" opacity="0.15"/>
+                        <rect x="360" y="220" width="30" height="30" rx="8" fill="#FF6B00" opacity="0.1" transform="rotate(15 375 235)"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Attendance Management Section -->
+    <section class="benefits-section" id="attendance">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">HR Module</span>
+                <h2>Attendance Management</h2>
+                <p>Complete staff attendance tracking with calendar view, bulk marking, and salary integration</p>
+            </div>
+            <div class="benefits-grid">
+                <div class="benefits-column">
+                    <div class="benefits-column-header">
+                        <div class="benefits-column-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
+                        </div>
+                        <h3>Attendance Tracking</h3>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>📅</span></div>
+                        <div class="benefit-content">
+                            <h4>Visual Calendar View</h4>
+                            <p>Monthly calendar showing attendance status for each day</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>✅</span></div>
+                        <div class="benefit-content">
+                            <h4>Multiple Status Types</h4>
+                            <p>Present, Absent, Half Day, Leave, and Holiday options</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>⏰</span></div>
+                        <div class="benefit-content">
+                            <h4>Check-in/Check-out Times</h4>
+                            <p>Record arrival and departure with working hours calculation</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>👥</span></div>
+                        <div class="benefit-content">
+                            <h4>Bulk Attendance Marking</h4>
+                            <p>Mark attendance for all staff on a single date at once</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="benefits-column">
+                    <div class="benefits-column-header">
+                        <div class="benefits-column-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                        </div>
+                        <h3>Reports & Integration</h3>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>📊</span></div>
+                        <div class="benefit-content">
+                            <h4>Attendance Summary</h4>
+                            <p>Monthly summary with counts for each status type</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>📈</span></div>
+                        <div class="benefit-content">
+                            <h4>Attendance Reports</h4>
+                            <p>Generate reports for all staff members by month</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>👤</span></div>
+                        <div class="benefit-content">
+                            <h4>Staff-wise Filtering</h4>
+                            <p>View and filter attendance for individual staff</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><span>💰</span></div>
+                        <div class="benefit-content">
+                            <h4>Salary Integration</h4>
+                            <p>Attendance directly integrates with salary calculation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ease of Use Section -->
+    <section class="ease-section" id="ease-of-use">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">User Experience</span>
+                <h2>Designed for Ease of Use</h2>
+                <p>Intuitive interfaces that require no special training</p>
+            </div>
+            <div class="ease-grid">
+                <div class="ease-card">
+                    <div class="ease-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <h3>For Administrators</h3>
+                    <ul>
+                        <li>Clean, modern dashboard layout</li>
+                        <li>Quick actions with minimal clicks</li>
+                        <li>Powerful search & filter tools</li>
+                        <li>Bulk operation capabilities</li>
+                        <li>Responsive design for any device</li>
+                    </ul>
+                </div>
+                <div class="ease-card">
+                    <div class="ease-icon">
+                        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                    </div>
+                    <h3>For Customers</h3>
+                    <ul>
+                        <li>Simple registration process</li>
+                        <li>Easy product navigation</li>
+                        <li>Streamlined checkout flow</li>
+                        <li>Quick access to order history</li>
+                        <li>Self-service profile management</li>
+                    </ul>
+                </div>
+                <div class="ease-card">
+                    <div class="ease-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5.38-1.03.7-1.62.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.07.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5-.38 1.03-.7 1.62-.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    </div>
+                    <h3>Technical Simplicity</h3>
+                    <ul>
+                        <li>No special training required</li>
+                        <li>Built-in help documentation</li>
+                        <li>Consistent cross-device experience</li>
+                        <li>Intuitive error handling</li>
+                        <li>Guided workflows</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Section -->
+    <section class="security-section" id="security">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Protection</span>
+                <h2>Security & Reliability</h2>
+                <p>Enterprise-grade security to protect your business and customer data</p>
+            </div>
+            <div class="security-grid">
+                <div class="security-item">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3-4H7v-2h7v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    </div>
+                    <h4>Secure Authentication</h4>
+                    <p>Industry-standard password hashing and token-based sessions</p>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                    </div>
+                    <h4>Role-Based Permissions</h4>
+                    <p>Granular access control for different user types</p>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </div>
+                    <h4>Data Protection</h4>
+                    <p>Secure handling of customer and business data</p>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    </div>
+                    <h4>Regular Backups</h4>
+                    <p>Automated backups to protect against data loss</p>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </div>
+                    <h4>Scalable Infrastructure</h4>
+                    <p>Built on Laravel 12, a proven enterprise framework</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack Section -->
+    <section class="tech-section" id="technology">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Tech Stack</span>
+                <h2>Built with Modern Technology</h2>
+                <p>Reliable, scalable, and future-proof technologies</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>Backend Framework</h4>
+                        <span class="tech-badge">Laravel 12 (PHP 8.2+)</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>Authentication</h4>
+                        <span class="tech-badge">Laravel Sanctum</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>Database</h4>
+                        <span class="tech-badge">MySQL / SQLite</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2l-2 18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2l-2-18c0-1.1-.9-2-2-2zm0 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>API Documentation</h4>
+                        <span class="tech-badge">L5-Swagger</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2l-2 18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2l-2-18c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>PDF Generation</h4>
+                        <span class="tech-badge">DomPDF</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>Push Notifications</h4>
+                        <span class="tech-badge">Firebase Cloud Messaging</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                    </div>
+                    <div class="tech-info">
+                        <h4>Mobile App</h4>
+                        <span class="tech-badge">Flutter (iOS & Android)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="timeline-section" id="timeline">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Implementation</span>
+                <h2>Project Timeline</h2>
+                <p>A structured approach to get you up and running quickly</p>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker">1</div>
+                    <div class="timeline-content">
+                        <h4>Setup & Deployment</h4>
+                        <div class="duration">1-2 Days</div>
+                        <p>Server configuration, database setup, and initial deployment to your hosting environment.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">2</div>
+                    <div class="timeline-content">
+                        <h4>Configuration & Branding</h4>
+                        <div class="duration">2-3 Days</div>
+                        <p>Business settings, theme customization, logo upload, and initial product catalog setup.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">3</div>
+                    <div class="timeline-content">
+                        <h4>Testing & QA</h4>
+                        <div class="duration">2-3 Days</div>
+                        <p>User acceptance testing, mobile app testing, and comprehensive quality assurance.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">4</div>
+                    <div class="timeline-content">
+                        <h4>Training</h4>
+                        <div class="duration">1-2 Days</div>
+                        <p>Admin training sessions, documentation review, and hands-on practice with the system.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">5</div>
+                    <div class="timeline-content">
+                        <h4>Launch</h4>
+                        <div class="duration">1 Day</div>
+                        <p>Go-live deployment, initial monitoring, and support during the launch phase.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Transform Your Business?</h2>
+                <p>
+                    Join the digital revolution and take your distribution business to the next level. 
+                    Reduce costs, increase efficiency, and delight your customers.
+                </p>
+                <div class="cta-highlights">
+                    <div class="cta-highlight">
+                        <span class="check">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </span>
+                        <span>Streamlined Operations</span>
+                    </div>
+                    <div class="cta-highlight">
+                        <span class="check">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </span>
+                        <span>Enhanced Customer Experience</span>
+                    </div>
+                    <div class="cta-highlight">
+                        <span class="check">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </span>
+                        <span>Improved Cash Flow</span>
+                    </div>
+                    <div class="cta-highlight">
+                        <span class="check">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </span>
+                        <span>Scalable Growth</span>
+                    </div>
+                </div>
+                <a href="#features" class="cta-btn">
+                    Get Started Today
+                    <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l4.59-4.58L18 11l-6 6z"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">Distributor<span>App</span></span>
+                </a>
+                <p>A comprehensive B2B e-commerce platform designed to streamline distribution operations and accelerate business growth.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#challenges">Challenges</a></li>
+                    <li><a href="#benefits">Benefits</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#salary">Salary</a></li>
+                    <li><a href="#attendance">Attendance</a></li>
+                    <li><a href="#technology">Technology</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#ease-of-use">User Guide</a></li>
+                    <li><a href="#security">Security</a></li>
+                    <li><a href="#timeline">Implementation</a></li>
+                    <li><a href="#">Contact Support</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Distributor App. All rights reserved. | For questions or demonstrations, contact your project representative.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const isOpen = navLinks.classList.contains('active');
+            mobileMenuBtn.innerHTML = isOpen 
+                ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'
+                : '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>';
+        });
+
+        // Close mobile menu when clicking a link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                mobileMenuBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>';
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const navHeight = document.querySelector('.navbar').offsetHeight;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('.challenge-card, .feature-card, .benefit-item, .ease-card, .tech-card, .timeline-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

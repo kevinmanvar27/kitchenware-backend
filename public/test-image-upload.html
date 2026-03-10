@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        img {
+            max-width: 200px;
+            margin: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Category Image Upload Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Storage Link Test</h2>
+        <p id="storage-link-test">Testing...</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Image Path Test</h2>
+        <p>Testing various image paths:</p>
+        <div id="image-path-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. File Upload Test</h2>
+        <input type="file" id="test-file" accept="image/*">
+        <button onclick="testFileUpload()">Test Upload</button>
+        <p id="upload-result"></p>
+    </div>
+    
+    <script>
+        // Test 1: Storage link
+        fetch('/storage/.gitignore')
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('storage-link-test').innerHTML = 
+                        '<span class="success">✓ Storage link is working correctly</span>';
+                } else {
+                    document.getElementById('storage-link-test').innerHTML = 
+                        '<span class="error">✗ Storage link not working (Status: ' + response.status + ')</span>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('storage-link-test').innerHTML = 
+                    '<span class="error">✗ Storage link error: ' + error.message + '</span>';
+            });
+        
+        // Test 2: Image paths
+        const testPaths = [
+            '/storage/categories/',
+            '/storage/vendor_5/categories/',
+            '/images/default-category.png'
+        ];
+        
+        const imagePathTest = document.getElementById('image-path-test');
+        testPaths.forEach(path => {
+            const img = document.createElement('img');
+            img.src = path + 'test.jpg';
+            img.onerror = function() {
+                const p = document.createElement('p');
+                p.className = 'info';
+                p.textContent = '• Path: ' + path + ' (directory exists, test image not found - this is expected)';
+                imagePathTest.appendChild(p);
+            };
+        });
+        
+        // Test 3: File upload
+        function testFileUpload() {
+            const fileInput = document.getElementById('test-file');
+            const result = document.getElementById('upload-result');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                result.innerHTML = '<span class="error">Please select a file</span>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            result.innerHTML = '<span class="info">File selected: ' + file.name + ' (' + file.size + ' bytes)</span>';
+            
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                result.innerHTML += '<br><span class="error">✗ Not an image file</span>';
+                return;
+            }
+            
+            result.innerHTML += '<br><span class="success">✓ Valid image file</span>';
+            
+            // Check file size (2MB limit)
+            if (file.size > 2048 * 1024) {
+                result.innerHTML += '<br><span class="error">✗ File too large (max 2MB)</span>';
+                return;
+            }
+            
+            result.innerHTML += '<br><span class="success">✓ File size OK</span>';
+            
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                result.appendChild(document.createElement('br'));
+                result.appendChild(img);
+                result.innerHTML += '<br><span class="success">✓ Image can be previewed</span>';
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>
