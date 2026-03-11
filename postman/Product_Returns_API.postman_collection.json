@@ -1,0 +1,301 @@
+{
+  "info": {
+    "name": "Product Returns API - Vendor Customer",
+    "description": "API endpoints for vendor customers to manage product returns via Flutter mobile app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/distributor-multivendor/public/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Get Eligible Invoices",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/customer/returns/eligible-invoices",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns", "eligible-invoices"]
+        },
+        "description": "Get list of invoices eligible for return (delivered within return window)"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get Return Reasons",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/customer/returns/reasons",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns", "reasons"]
+        },
+        "description": "Get predefined return reason categories"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Create Return Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Device-Type",
+            "value": "mobile"
+          },
+          {
+            "key": "X-App-Version",
+            "value": "1.0.0"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "invoice_id",
+              "value": "1",
+              "type": "text",
+              "description": "ID of the invoice to return"
+            },
+            {
+              "key": "return_items[0][product_id]",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "return_items[0][variation_id]",
+              "value": "1",
+              "type": "text",
+              "description": "Optional - only if product has variations"
+            },
+            {
+              "key": "return_items[0][quantity_returned]",
+              "value": "2",
+              "type": "text"
+            },
+            {
+              "key": "reason_category",
+              "value": "damaged",
+              "type": "text",
+              "description": "damaged, wrong_item, quality_issue, expired, not_as_described, defective, changed_mind, other"
+            },
+            {
+              "key": "reason_description",
+              "value": "Product arrived damaged during shipping",
+              "type": "text"
+            },
+            {
+              "key": "images[]",
+              "type": "file",
+              "description": "Upload up to 5 images (max 5MB each)"
+            },
+            {
+              "key": "pickup_address",
+              "value": "123 Main Street, City",
+              "type": "text",
+              "description": "Optional - defaults to customer address"
+            },
+            {
+              "key": "pickup_contact",
+              "value": "+1234567890",
+              "type": "text",
+              "description": "Optional - defaults to customer phone"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/customer/returns",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns"]
+        },
+        "description": "Create a new return request for delivered products"
+      },
+      "response": []
+    },
+    {
+      "name": "4. List My Returns",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/customer/returns?status=pending&page=1",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns"],
+          "query": [
+            {
+              "key": "status",
+              "value": "pending",
+              "description": "Filter by status (optional)"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number for pagination"
+            }
+          ]
+        },
+        "description": "Get list of customer's return requests with pagination"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Get Return Details",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/customer/returns/:return_id",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns", ":return_id"],
+          "variable": [
+            {
+              "key": "return_id",
+              "value": "1",
+              "description": "Return request ID"
+            }
+          ]
+        },
+        "description": "Get detailed information about a specific return request"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Cancel Return Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/customer/returns/:return_id/cancel",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns", ":return_id", "cancel"],
+          "variable": [
+            {
+              "key": "return_id",
+              "value": "1",
+              "description": "Return request ID"
+            }
+          ]
+        },
+        "description": "Cancel a pending return request (only works for 'pending' status)"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Upload Additional Images",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "images[]",
+              "type": "file",
+              "description": "Upload 1-5 images (max 5MB each)"
+            },
+            {
+              "key": "images[]",
+              "type": "file",
+              "description": "Additional image"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/customer/returns/:return_id/upload-images",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns", ":return_id", "upload-images"],
+          "variable": [
+            {
+              "key": "return_id",
+              "value": "1",
+              "description": "Return request ID"
+            }
+          ]
+        },
+        "description": "Upload additional images for a return request (pending or under_review status only)"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Get Status History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/customer/returns/:return_id/history",
+          "host": ["{{base_url}}"],
+          "path": ["customer", "returns", ":return_id", "history"],
+          "variable": [
+            {
+              "key": "return_id",
+              "value": "1",
+              "description": "Return request ID"
+            }
+          ]
+        },
+        "description": "Get status history timeline for a return request"
+      },
+      "response": []
+    }
+  ]
+}

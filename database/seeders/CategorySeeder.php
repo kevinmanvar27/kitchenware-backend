@@ -43,11 +43,7 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $categoryData) {
-            // Use firstOrCreate to avoid duplicates
-            $category = Category::firstOrCreate(
-                ['slug' => $categoryData['slug']],
-                $categoryData
-            );
+            $category = Category::create($categoryData);
 
             // Create sample subcategories for each category
             $subcategories = [
@@ -68,11 +64,7 @@ class CategorySeeder extends Seeder
             ];
 
             foreach ($subcategories as $subcategoryData) {
-                // Use firstOrCreate to avoid duplicates
-                SubCategory::firstOrCreate(
-                    ['slug' => $subcategoryData['slug']],
-                    $subcategoryData
-                );
+                SubCategory::create($subcategoryData);
             }
         }
     }

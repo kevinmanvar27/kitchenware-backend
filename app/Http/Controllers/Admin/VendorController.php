@@ -237,6 +237,14 @@ class VendorController extends Controller
                 'priority' => $request->priority ?? 0,
             ]);
 
+            // Sync referral entry if it exists
+            if ($vendor->referral) {
+                $vendor->referral->update([
+                    'name' => $request->store_name,
+                    'phone_number' => $request->business_phone,
+                ]);
+            }
+
             DB::commit();
 
             // Log the activity
@@ -269,6 +277,11 @@ class VendorController extends Controller
             
             // Delete vendor staff
             $vendor->staff()->delete();
+            
+            // Mark referral as inactive instead of deleting
+            if ($vendor->referral) {
+                $vendor->referral->update(['status' => 'inactive']);
+            }
             
             // Delete vendor
             $vendor->delete();

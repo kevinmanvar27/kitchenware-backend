@@ -11,6 +11,7 @@ class WalletTransaction extends Model
 
     protected $fillable = [
         'user_id',
+        'vendor_customer_id',
         'type',
         'amount',
         'balance_after',
@@ -33,6 +34,14 @@ class WalletTransaction extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the vendor customer that owns the transaction.
+     */
+    public function vendorCustomer()
+    {
+        return $this->belongsTo(VendorCustomer::class);
     }
 
     /**

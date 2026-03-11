@@ -401,6 +401,16 @@ Route::prefix('v1/customer')->middleware(['auth:sanctum', 'vendor.customer'])->g
     // Razorpay Payment Routes for Customer Invoices
     Route::post('/invoices/{id}/create-payment-order', [CustomerInvoiceController::class, 'createPaymentOrder']);
     Route::post('/invoices/verify-payment', [CustomerInvoiceController::class, 'verifyPayment']);
+    
+    // Product Returns - Vendor customers can request returns
+    Route::get('/returns/eligible-invoices', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'eligibleInvoices']);
+    Route::get('/returns/reasons', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'returnReasons']);
+    Route::get('/returns', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'index']);
+    Route::post('/returns', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'store']);
+    Route::get('/returns/{return}', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'show']);
+    Route::post('/returns/{return}/cancel', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'cancel']);
+    Route::post('/returns/{return}/upload-images', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'uploadImages']);
+    Route::get('/returns/{return}/history', [\App\Http\Controllers\Api\VendorCustomer\ReturnController::class, 'statusHistory']);
 });
 
 /*

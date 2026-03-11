@@ -18,10 +18,10 @@
                         <p class="text-muted mb-0">View all your past and current subscriptions</p>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ route('vendor.subscription.current') }}" class="btn btn-outline-primary rounded-pill">
+                        <a href="{{ route('vendor.subscription.current') }}" class="btn btn-theme-outline rounded-pill">
                             <i class="fas fa-crown me-1"></i><span class="d-none d-sm-inline"> Current</span>
                         </a>
-                        <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-primary rounded-pill">
+                        <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-theme-primary rounded-pill">
                             <i class="fas fa-th-large me-1"></i><span class="d-none d-sm-inline"> View Plans</span>
                         </a>
                     </div>
@@ -31,7 +31,7 @@
                 @if($subscriptions->count() > 0)
                 <div class="row mb-4">
                     <div class="col-6 col-md-3 mb-3">
-                        <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                        <div class="card border-0 shadow-sm text-white h-100" style="background-color: var(--theme-color);">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -194,7 +194,7 @@
                                     <i class="fas fa-history fa-4x text-muted mb-3 d-block"></i>
                                     <h5 class="text-muted mb-2">No Subscription History</h5>
                                     <p class="text-muted mb-4">You haven't subscribed to any plan yet.</p>
-                                    <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-primary rounded-pill px-4">
+                                    <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-theme-primary rounded-pill px-4">
                                         <i class="fas fa-shopping-cart me-2"></i>Browse Plans
                                     </a>
                                 </div>
@@ -227,6 +227,44 @@ code {
     font-size: 0.875rem;
     color: #d63384;
     font-weight: 500;
+}
+
+/* Theme-based button styles */
+.btn-theme-primary {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+}
+
+.btn-theme-primary:hover {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-theme-outline {
+    color: var(--theme-color);
+    border-color: var(--theme-color);
+    background-color: transparent;
+}
+
+.btn-theme-outline:hover {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.text-theme {
+    color: var(--theme-color) !important;
+}
+
+.border-theme {
+    border-color: var(--theme-color) !important;
 }
 </style>
 @endpush

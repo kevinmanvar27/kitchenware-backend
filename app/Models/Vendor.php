@@ -95,6 +95,30 @@ class Vendor extends Model
                 $vendor->referral_code = static::generateReferralCode($vendor);
             }
         });
+
+        static::created(function ($vendor) {
+            // Create a referral entry in the referrals table for this vendor
+            // so it appears in the admin referrals page
+            try {
+                // Check if referral entry already exists to prevent duplicates
+                $existingReferral = \App\Models\Referral::where('referral_code', $vendor->referral_code)->first();
+                
+                if (!$existingReferral) {
+                    \App\Models\Referral::create([
+                        'name' => $vendor->store_name,
+                        'phone_number' => $vendor->business_phone,
+                        'amount' => 0, // Default amount, admin can update later
+                        'referral_code' => $vendor->referral_code,
+                        'vendor_id' => $vendor->id, // Link to vendor for proper tracking
+                        'status' => 'active',
+                        'payment_status' => 'pending',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail vendor creation
+                \Log::error('Failed to create referral entry for vendor: ' . $e->getMessage());
+            }
+        });
     }
 
     /**
@@ -131,6 +155,14 @@ class Vendor extends Model
         }
         
         return $code;
+    }
+
+    /**
+     * Get the referral entry for this vendor
+     */
+    public function referral()
+    {
+        return $this->hasOne(\App\Models\Referral::class, 'referral_code', 'referral_code');
     }
 
     /**

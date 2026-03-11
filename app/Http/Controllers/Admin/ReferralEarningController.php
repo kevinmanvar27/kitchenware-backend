@@ -38,13 +38,24 @@ class ReferralEarningController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('referral_code', 'like', "%{$search}%")
+                // Search by ID if numeric
+                if (is_numeric($search)) {
+                    $q->where('id', $search);
+                }
+                // Search by referral code
+                $q->orWhere('referral_code', 'like', "%{$search}%")
+                  // Search by referrer vendor store name
                   ->orWhereHas('referrerVendor', function($q) use ($search) {
-                      $q->where('store_name', 'like', "%{$search}%");
+                      $q->where('store_name', 'like', "%{$search}%")
+                        ->orWhere('id', $search);
                   })
+                  // Search by referred vendor store name
                   ->orWhereHas('referredVendor', function($q) use ($search) {
-                      $q->where('store_name', 'like', "%{$search}%");
-                  });
+                      $q->where('store_name', 'like', "%{$search}%")
+                        ->orWhere('id', $search);
+                  })
+                  // Search by subscription ID
+                  ->orWhere('subscription_id', $search);
             });
         }
 

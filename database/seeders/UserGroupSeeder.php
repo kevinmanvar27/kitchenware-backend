@@ -37,10 +37,7 @@ class UserGroupSeeder extends Seeder
         ];
 
         foreach ($userGroups as $group) {
-            UserGroup::firstOrCreate(
-                ['name' => $group['name']],
-                $group
-            );
+            UserGroup::create($group);
         }
     }
 }

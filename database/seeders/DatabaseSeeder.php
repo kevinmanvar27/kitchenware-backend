@@ -15,7 +15,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed the admin user first
+        // User::factory(10)->create();
+
+        User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
+
+        // Seed the admin user
         $this->call(AdminUserSeeder::class);
         
         // Seed the default settings
@@ -41,14 +48,5 @@ class DatabaseSeeder extends Seeder
         
         // Associate products with categories
         $this->call(CategoryProductSeeder::class);
-        
-        // Create test user only if it doesn't exist
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => bcrypt('password'),
-            ]
-        );
     }
 }

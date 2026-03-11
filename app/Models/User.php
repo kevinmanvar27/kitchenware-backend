@@ -315,6 +315,22 @@ class User extends Authenticatable
     }
     
     /**
+     * Get the return requests for the user.
+     */
+    public function returns()
+    {
+        return $this->hasMany(ProductReturn::class);
+    }
+    
+    /**
+     * Get the wallet transactions for the user.
+     */
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');
+    }
+    
+    /**
      * Get the applied coupon for the user.
      */
     public function appliedCoupon()
@@ -521,14 +537,6 @@ class User extends Authenticatable
     public function referredBy()
     {
         return $this->hasOne(Referral::class, 'referred_id');
-    }
-    
-    /**
-     * Get wallet transactions for the user.
-     */
-    public function walletTransactions()
-    {
-        return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');
     }
     
     /**

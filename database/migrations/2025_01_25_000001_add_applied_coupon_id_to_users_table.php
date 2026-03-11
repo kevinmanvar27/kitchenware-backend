@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'applied_coupon_id')) {
-                $table->unsignedBigInteger('applied_coupon_id')->nullable();
+                $table->unsignedBigInteger('applied_coupon_id')->nullable()->after('discount_percentage');
                 $table->foreign('applied_coupon_id')->references('id')->on('coupons')->onDelete('set null');
             }
         });

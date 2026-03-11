@@ -112,7 +112,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-medium small text-muted mb-2">Search</label>
-                            <input type="text" name="search" class="form-control" placeholder="Referral code, vendor name..." value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control" placeholder="ID, referral code, vendor name, subscription ID..." value="{{ request('search') }}">
                         </div>
                         <div class="col-md-2 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-theme rounded-pill px-4 flex-grow-1">

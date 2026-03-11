@@ -98,6 +98,7 @@ class SubscriptionController extends Controller
 
             // Validate referral code and calculate discount
             $referringVendor = null;
+            $referralRecord = null;
             $discountPercentage = 0;
             $originalPrice = $plan->price;
             $finalPrice = $originalPrice;
@@ -105,24 +106,37 @@ class SubscriptionController extends Controller
             if ($request->filled('referral_code')) {
                 $referralCode = strtoupper(trim($request->referral_code));
                 
-                // Find vendor with this referral code
-                $referringVendor = Vendor::where('referral_code', $referralCode)
-                    ->where('status', 'approved')
+                // First, check if it's a valid referral code in referrals table (supports both admin-created and vendor codes)
+                $referralRecord = Referral::where('referral_code', $referralCode)
+                    ->where('status', 'active')
                     ->first();
 
-                if (!$referringVendor) {
+                if (!$referralRecord) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Invalid or inactive referral code.'
                     ], 400);
                 }
                 
-                // Check if vendor is not using their own referral code
-                if ($referringVendor->id === $vendor->id) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You cannot use your own referral code.'
-                    ], 400);
+                // If it's a vendor-linked referral, get the vendor
+                if ($referralRecord->vendor_id) {
+                    $referringVendor = $referralRecord->vendor;
+                    
+                    // Check if vendor is approved
+                    if (!$referringVendor || $referringVendor->status !== 'approved') {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Referral code belongs to an inactive vendor.'
+                        ], 400);
+                    }
+                    
+                    // Check if vendor is not using their own referral code
+                    if ($referringVendor->id === $vendor->id) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'You cannot use your own referral code.'
+                        ], 400);
+                    }
                 }
                 
                 // Apply 10% discount
@@ -160,7 +174,8 @@ class SubscriptionController extends Controller
                     'plan_id' => $plan->id,
                     'plan_name' => $plan->name,
                     'type' => 'subscription',
-                    'referral_code' => $referringVendor ? $referringVendor->referral_code : null,
+                    'referral_code' => $referralRecord ? $referralRecord->referral_code : null,
+                    'referral_id' => $referralRecord ? $referralRecord->id : null,
                     'original_price' => $originalPrice,
                     'discount_percentage' => $discountPercentage,
                     'final_price' => $finalPrice,
@@ -180,10 +195,10 @@ class SubscriptionController extends Controller
                 'amount_paid' => $finalPrice,
                 'currency' => 'INR',
                 'auto_renew' => false,
-                'referral_code' => $referringVendor ? $referringVendor->referral_code : null,
-                'referral_id' => null, // Not using the referrals table for vendor referrals
-                'notes' => $referringVendor 
-                    ? "Applied {$discountPercentage}% discount using referral code: {$referringVendor->referral_code}" 
+                'referral_code' => $referralRecord ? $referralRecord->referral_code : null,
+                'referral_id' => $referralRecord ? $referralRecord->id : null,
+                'notes' => $referralRecord 
+                    ? "Applied {$discountPercentage}% discount using referral code: {$referralRecord->referral_code}" 
                     : null,
             ]);
 
@@ -192,7 +207,8 @@ class SubscriptionController extends Controller
                 'plan_id' => $plan->id,
                 'razorpay_order_id' => $razorpayOrder->id,
                 'subscription_id' => $subscription->id,
-                'referral_code' => $referringVendor ? $referringVendor->referral_code : null,
+                'referral_code' => $referralRecord ? $referralRecord->referral_code : null,
+                'referral_id' => $referralRecord ? $referralRecord->id : null,
                 'original_price' => $originalPrice,
                 'discount_percentage' => $discountPercentage,
                 'final_price' => $finalPrice,
@@ -304,53 +320,67 @@ class SubscriptionController extends Controller
 
             // Create referral user entry if referral code was used
             if ($subscription->referral_id) {
-                ReferralUser::create([
-                    'referral_id' => $subscription->referral_id,
-                    'user_id' => $user->id,
-                    'name' => $vendor->store_name ?? $user->name,
-                    'email' => $vendor->business_email ?? $user->email,
-                    'phone_number' => $vendor->business_phone ?? $user->phone,
-                    'notes' => 'First subscription purchase - Plan: ' . $plan->name,
-                    'payment_status' => 'pending',
-                ]);
+                // Get the referral record to check if it's vendor-linked or admin-created
+                $referralRecord = Referral::find($subscription->referral_id);
+                
+                if ($referralRecord) {
+                    // Only create ReferralUser for non-vendor (admin-created) referral codes
+                    // Vendor referrals are tracked in ReferralEarning table
+                    if (!$referralRecord->vendor_id) {
+                        ReferralUser::create([
+                            'referral_id' => $subscription->referral_id,
+                            'user_id' => $user->id,
+                            'name' => $vendor->store_name ?? $user->name,
+                            'email' => $vendor->business_email ?? $user->email,
+                            'phone_number' => $vendor->business_phone ?? $user->phone,
+                            'notes' => 'Subscription purchase - Plan: ' . $plan->name,
+                            'payment_status' => 'pending',
+                            'payment_amount' => 0, // Admin will set the referral amount
+                        ]);
 
-                Log::info('Referral user created', [
-                    'referral_id' => $subscription->referral_id,
-                    'referral_code' => $subscription->referral_code,
-                    'user_id' => $user->id,
-                    'vendor_id' => $vendor->id,
-                ]);
+                        Log::info('Referral user created for admin referral code', [
+                            'referral_id' => $subscription->referral_id,
+                            'referral_code' => $subscription->referral_code,
+                            'user_id' => $user->id,
+                            'vendor_id' => $vendor->id,
+                        ]);
+                    }
+                }
             }
 
             // Record referral earning if vendor referral code was used
-            if ($subscription->referral_code) {
-                $referringVendor = Vendor::where('referral_code', $subscription->referral_code)
-                    ->where('status', 'approved')
-                    ->first();
+            if ($subscription->referral_code && $subscription->referral_id) {
+                // Get the referral record
+                $referralRecord = Referral::find($subscription->referral_id);
                 
-                if ($referringVendor) {
-                    // Calculate commission (10% of amount paid)
-                    $commissionPercentage = 10;
-                    $commissionAmount = round($subscription->amount_paid * $commissionPercentage / 100, 2);
+                // Check if it's a vendor-linked referral code
+                if ($referralRecord && $referralRecord->vendor_id) {
+                    $referringVendor = $referralRecord->vendor;
                     
-                    // Create referral earning record
-                    \App\Models\ReferralEarning::create([
-                        'referrer_vendor_id' => $referringVendor->id,
-                        'referred_vendor_id' => $vendor->id,
-                        'subscription_id' => $subscription->id,
-                        'referral_code' => $subscription->referral_code,
-                        'subscription_amount' => $subscription->amount_paid,
-                        'commission_percentage' => $commissionPercentage,
-                        'commission_amount' => $commissionAmount,
-                        'status' => 'pending', // Admin needs to approve
-                    ]);
-                    
-                    Log::info('Referral earning recorded', [
-                        'referrer_vendor_id' => $referringVendor->id,
-                        'referred_vendor_id' => $vendor->id,
-                        'commission_amount' => $commissionAmount,
-                        'subscription_id' => $subscription->id,
-                    ]);
+                    if ($referringVendor && $referringVendor->status === 'approved') {
+                        // Calculate commission (10% of amount paid)
+                        $commissionPercentage = 10;
+                        $commissionAmount = round($subscription->amount_paid * $commissionPercentage / 100, 2);
+                        
+                        // Create referral earning record
+                        \App\Models\ReferralEarning::create([
+                            'referrer_vendor_id' => $referringVendor->id,
+                            'referred_vendor_id' => $vendor->id,
+                            'subscription_id' => $subscription->id,
+                            'referral_code' => $subscription->referral_code,
+                            'subscription_amount' => $subscription->amount_paid,
+                            'commission_percentage' => $commissionPercentage,
+                            'commission_amount' => $commissionAmount,
+                            'status' => 'pending', // Admin needs to approve
+                        ]);
+                        
+                        Log::info('Referral earning recorded for vendor referral code', [
+                            'referrer_vendor_id' => $referringVendor->id,
+                            'referred_vendor_id' => $vendor->id,
+                            'commission_amount' => $commissionAmount,
+                            'subscription_id' => $subscription->id,
+                        ]);
+                    }
                 }
             }
 

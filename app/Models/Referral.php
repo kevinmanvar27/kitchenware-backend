@@ -20,6 +20,7 @@ class Referral extends Model
         'phone_number',
         'amount',
         'referral_code',
+        'vendor_id',
         'status',
         'payment_status',
     ];
@@ -123,6 +124,14 @@ class Referral extends Model
     public function referralUsers()
     {
         return $this->hasMany(ReferralUser::class);
+    }
+
+    /**
+     * Get the vendor associated with this referral code.
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(\App\Models\Vendor::class, 'vendor_id');
     }
 
     /**

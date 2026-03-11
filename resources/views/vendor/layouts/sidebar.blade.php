@@ -149,6 +149,23 @@
             </li>
             @endif
             
+            @if($canAccess('invoices'))
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('vendor.returns*') ? 'active' : '' }}" href="{{ route('vendor.returns.index') }}" data-title="Returns">
+                    <i class="fas fa-undo me-3"></i>
+                    <span class="sidebar-text">Returns</span>
+                    @php
+                        $pendingReturnsCount = \App\Models\ProductReturn::where('vendor_id', $vendor->id ?? 0)
+                            ->where('status', 'pending')
+                            ->count();
+                    @endphp
+                    @if($pendingReturnsCount > 0)
+                        <span class="badge bg-danger ms-2">{{ $pendingReturnsCount }}</span>
+                    @endif
+                </a>
+            </li>
+            @endif
+            
             {{-- ========================================
                 4. CUSTOMER MANAGEMENT
                 (Customers, Leads)

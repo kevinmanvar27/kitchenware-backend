@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Referral;
 use App\Models\ReferralUser;
+use App\Models\ReferralEarning;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Traits\LogsActivity;
@@ -20,7 +21,8 @@ class ReferralController extends Controller
     {
         $this->authorize('viewAny', Referral::class);
         
-        $query = Referral::withCount([
+        $query = Referral::with('vendor') // Load vendor relationship
+            ->withCount([
             'referralUsers',
             'referralUsers as pending_users_count' => function ($q) {
                 $q->where('payment_status', 'pending');
@@ -54,34 +56,71 @@ class ReferralController extends Controller
         
         $referrals = $query->orderBy('created_at', 'desc')->get();
         
-        // Calculate pending amount for each referral
+        // Calculate pending amount for each referral AND include referral earnings data
         foreach ($referrals as $referral) {
+            // Manual referral users (old system)
             $referral->calculated_pending_amount = $referral->pending_users_count * $referral->amount;
+            
+            // Add vendor referral earnings data (new system)
+            if ($referral->vendor) {
+                // Count referred vendors who used this code
+                $referralEarnings = ReferralEarning::where('referral_code', $referral->referral_code)->get();
+                
+                $referral->vendor_referred_count = $referralEarnings->count();
+                $referral->vendor_pending_count = $referralEarnings->where('status', 'pending')->count();
+                $referral->vendor_approved_count = $referralEarnings->where('status', 'approved')->count();
+                $referral->vendor_paid_count = $referralEarnings->where('status', 'paid')->count();
+                
+                $referral->vendor_pending_amount = $referralEarnings->where('status', 'pending')->sum('commission_amount');
+                $referral->vendor_approved_amount = $referralEarnings->where('status', 'approved')->sum('commission_amount');
+                $referral->vendor_paid_amount = $referralEarnings->where('status', 'paid')->sum('commission_amount');
+                
+                // Combine with manual referral data
+                $referral->total_referred_users = $referral->referral_users_count + $referral->vendor_referred_count;
+                $referral->total_pending_users = $referral->pending_users_count + $referral->vendor_pending_count;
+                $referral->total_paid_users = $referral->paid_users_count + $referral->vendor_paid_count + $referral->vendor_approved_count;
+                $referral->total_paid_amount_combined = ($referral->total_paid_amount ?? 0) + $referral->vendor_paid_amount + $referral->vendor_approved_amount;
+                $referral->total_pending_amount_combined = $referral->calculated_pending_amount + $referral->vendor_pending_amount;
+            } else {
+                // No vendor, use only manual referral data
+                $referral->total_referred_users = $referral->referral_users_count;
+                $referral->total_pending_users = $referral->pending_users_count;
+                $referral->total_paid_users = $referral->paid_users_count;
+                $referral->total_paid_amount_combined = $referral->total_paid_amount ?? 0;
+                $referral->total_pending_amount_combined = $referral->calculated_pending_amount;
+            }
         }
         
-        // Get statistics
+        // Get statistics - combine both systems
         $totalReferrals = Referral::count();
+        
+        // Manual referral users
         $totalReferredUsers = ReferralUser::count();
         $totalPaidUsers = ReferralUser::paid()->count();
         $totalPendingUsers = ReferralUser::pending()->count();
         $totalPaidAmount = ReferralUser::paid()->sum('payment_amount');
-        
-        // Calculate total pending amount (pending users * their referral amount)
         $totalPendingAmount = DB::table('referral_users')
             ->join('referrals', 'referral_users.referral_id', '=', 'referrals.id')
             ->where('referral_users.payment_status', 'pending')
             ->sum('referrals.amount');
         
+        // Vendor referral earnings
+        $vendorReferredCount = ReferralEarning::count();
+        $vendorPaidCount = ReferralEarning::whereIn('status', ['paid', 'approved'])->count();
+        $vendorPendingCount = ReferralEarning::where('status', 'pending')->count();
+        $vendorPaidAmount = ReferralEarning::whereIn('status', ['paid', 'approved'])->sum('commission_amount');
+        $vendorPendingAmount = ReferralEarning::where('status', 'pending')->sum('commission_amount');
+        
         $stats = [
             'total' => $totalReferrals,
             'active' => Referral::active()->count(),
             'inactive' => Referral::inactive()->count(),
-            'total_referred_users' => $totalReferredUsers,
-            'total_amount' => $totalPaidAmount + $totalPendingAmount,
-            'total_paid_amount' => $totalPaidAmount,
-            'total_pending_amount' => $totalPendingAmount,
-            'pending_payments' => $totalPendingUsers,
-            'paid_payments' => $totalPaidUsers,
+            'total_referred_users' => $totalReferredUsers + $vendorReferredCount,
+            'total_amount' => $totalPaidAmount + $totalPendingAmount + $vendorPaidAmount + $vendorPendingAmount,
+            'total_paid_amount' => $totalPaidAmount + $vendorPaidAmount,
+            'total_pending_amount' => $totalPendingAmount + $vendorPendingAmount,
+            'pending_payments' => $totalPendingUsers + $vendorPendingCount,
+            'paid_payments' => $totalPaidUsers + $vendorPaidCount,
         ];
         
         return view('admin.referrals.index', compact('referrals', 'stats'));
@@ -253,22 +292,45 @@ class ReferralController extends Controller
     {
         $this->authorize('view', $referral);
         
+        // Get manual referral users (old system)
         $referralUsers = $referral->referralUsers()
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Calculate payment statistics for this referral
+        // Get vendor referral earnings (new system) - vendors who used this referral code
+        $referralEarnings = ReferralEarning::where('referral_code', $referral->referral_code)
+            ->with(['referredVendor', 'referrerVendor'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate payment statistics combining both systems
+        $manualTotalUsers = $referral->referralUsers()->count();
+        $manualPendingUsers = $referral->referralUsers()->pending()->count();
+        $manualPaidUsers = $referral->referralUsers()->paid()->count();
+        $manualTotalPaid = $referral->referralUsers()->paid()->sum('payment_amount');
+        $manualTotalPending = $referral->referralUsers()->pending()->count() * $referral->amount;
+        
+        // Vendor earnings stats
+        $vendorTotalUsers = $referralEarnings->count();
+        $vendorPendingUsers = $referralEarnings->where('status', 'pending')->count();
+        $vendorPaidUsers = $referralEarnings->whereIn('status', ['paid', 'approved'])->count();
+        $vendorTotalPaid = $referralEarnings->whereIn('status', ['paid', 'approved'])->sum('commission_amount');
+        $vendorTotalPending = $referralEarnings->where('status', 'pending')->sum('commission_amount');
+        
         $paymentStats = [
-            'total_users' => $referral->referralUsers()->count(),
-            'pending_users' => $referral->referralUsers()->pending()->count(),
-            'paid_users' => $referral->referralUsers()->paid()->count(),
-            'total_paid' => $referral->referralUsers()->paid()->sum('payment_amount'),
-            'total_pending' => $referral->referralUsers()->pending()->count() * $referral->amount,
+            'total_users' => $manualTotalUsers + $vendorTotalUsers,
+            'pending_users' => $manualPendingUsers + $vendorPendingUsers,
+            'paid_users' => $manualPaidUsers + $vendorPaidUsers,
+            'total_paid' => $manualTotalPaid + $vendorTotalPaid,
+            'total_pending' => $manualTotalPending + $vendorTotalPending,
             'amount_per_user' => $referral->amount,
+            // Separate counts for display
+            'manual_users' => $manualTotalUsers,
+            'vendor_users' => $vendorTotalUsers,
         ];
         
-        return view('admin.referrals.users', compact('referral', 'referralUsers', 'paymentStats'));
+        return view('admin.referrals.users', compact('referral', 'referralUsers', 'referralEarnings', 'paymentStats'));
     }
 
     /**

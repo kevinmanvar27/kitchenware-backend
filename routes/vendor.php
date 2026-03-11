@@ -290,6 +290,19 @@ Route::prefix('vendor')->name('vendor.')->middleware(['auth', 'vendor', 'vendor.
         Route::post('invoices-black/{id}/add-payment', [WithoutGstInvoiceController::class, 'addPayment'])->name('invoices-black.add-payment');
     });
     
+    // Product Returns Management - requires invoices permission
+    Route::middleware('vendor.permission:invoices')->group(function () {
+        Route::get('returns', [\App\Http\Controllers\Vendor\ReturnController::class, 'index'])->name('returns.index');
+        // Export routes MUST come before {return} parameter route
+        Route::get('returns/export/excel', [\App\Http\Controllers\Vendor\ReturnController::class, 'exportExcel'])->name('returns.export.excel');
+        Route::get('returns/export/pdf', [\App\Http\Controllers\Vendor\ReturnController::class, 'exportPdf'])->name('returns.export.pdf');
+        Route::get('returns/{return}', [\App\Http\Controllers\Vendor\ReturnController::class, 'show'])->name('returns.show');
+        Route::post('returns/{return}/approve', [\App\Http\Controllers\Vendor\ReturnController::class, 'approve'])->name('returns.approve');
+        Route::post('returns/{return}/reject', [\App\Http\Controllers\Vendor\ReturnController::class, 'reject'])->name('returns.reject');
+        Route::post('returns/{return}/update-status', [\App\Http\Controllers\Vendor\ReturnController::class, 'updateStatus'])->name('returns.update-status');
+        Route::post('returns/{return}/process-refund', [\App\Http\Controllers\Vendor\ReturnController::class, 'processRefund'])->name('returns.process-refund');
+    });
+    
     // Customer Management - requires customers permission
     Route::middleware('vendor.permission:customers')->group(function () {
         Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');

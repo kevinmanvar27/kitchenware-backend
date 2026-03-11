@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // This migration was intended to fix stock status inconsistencies
-        // but the table name was incorrect. The actual tables are 'products' and 'product_variations'
-        // No action needed as stock status is already properly defined in the original migrations
+        Schema::table('products_and_variations', function (Blueprint $table) {
+            //
+        });
     }
 
     /**
@@ -21,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // No action needed
+        Schema::table('products_and_variations', function (Blueprint $table) {
+            //
+        });
     }
 };

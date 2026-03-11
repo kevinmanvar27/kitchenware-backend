@@ -31,6 +31,7 @@ class VendorCustomer extends Authenticatable
         'profile_avatar',
         'device_token',
         'discount_percentage',
+        'wallet_balance',
         'is_active',
         'last_login_at',
     ];
@@ -53,6 +54,7 @@ class VendorCustomer extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
         'discount_percentage' => 'decimal:2',
+        'wallet_balance' => 'decimal:2',
         'is_active' => 'boolean',
         'last_login_at' => 'datetime',
     ];
@@ -103,6 +105,22 @@ class VendorCustomer extends Authenticatable
     public function wishlistItems()
     {
         return $this->hasMany(Wishlist::class, 'vendor_customer_id');
+    }
+
+    /**
+     * Get the return requests for this customer.
+     */
+    public function returns()
+    {
+        return $this->hasMany(ProductReturn::class, 'vendor_customer_id');
+    }
+
+    /**
+     * Get the wallet transactions for this customer.
+     */
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class, 'vendor_customer_id');
     }
 
     /**

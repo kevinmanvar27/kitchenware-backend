@@ -17,7 +17,7 @@
                         <h4 class="mb-0 fw-bold">Referral Earnings</h4>
                         <p class="text-muted mb-0">Track your referral commissions</p>
                     </div>
-                    <a href="{{ route('vendor.referral.my-code') }}" class="btn btn-primary rounded-pill">
+                    <a href="{{ route('vendor.referral.my-code') }}" class="btn rounded-pill" style="background-color: var(--theme-color); border-color: var(--theme-color); color: white;">
                         <i class="fas fa-gift me-2"></i>My Referral Code
                     </a>
                 </div>
@@ -178,7 +178,7 @@
                                                 <i class="fas fa-inbox fa-4x text-muted mb-3 d-block"></i>
                                                 <h5 class="text-muted mb-2">No Referral Earnings Yet</h5>
                                                 <p class="text-muted mb-3">Start earning by sharing your referral code!</p>
-                                                <a href="{{ route('vendor.referral.my-code') }}" class="btn btn-primary rounded-pill">
+                                                <a href="{{ route('vendor.referral.my-code') }}" class="btn rounded-pill" style="background-color: var(--theme-color); border-color: var(--theme-color); color: white;">
                                                     <i class="fas fa-gift me-2"></i>View My Referral Code
                                                 </a>
                                             </div>
@@ -215,6 +215,21 @@
 
 .table > :not(caption) > * > * {
     padding: 1rem 0.75rem;
+}
+
+/* Dynamic theme color button styles */
+.btn[style*="--theme-color"] {
+    transition: all 0.3s ease;
+}
+
+.btn[style*="--theme-color"]:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn[style*="--theme-color"]:active {
+    transform: translateY(0);
 }
 </style>
 @endpush

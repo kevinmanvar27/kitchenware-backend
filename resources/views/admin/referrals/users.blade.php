@@ -177,122 +177,225 @@
                                     </div>
                                 @endif
 
-                                @if($referralUsers->count() > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle" id="referralUsersTable">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width: 40px;">
-                                                        <input type="checkbox" class="form-check-input" id="selectAllUsers">
-                                                    </th>
-                                                    <th>#</th>
-                                                    <th>User Details</th>
-                                                    <th>Contact</th>
-                                                    <th class="text-center">Payment Status</th>
-                                                    <th class="text-end">Amount</th>
-                                                    <th>Paid On</th>
-                                                    <th class="text-end">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($referralUsers as $index => $referralUser)
-                                                <tr class="{{ $referralUser->isPaid() ? 'table-success' : '' }}">
-                                                    <td>
-                                                        @if($referralUser->isPending())
-                                                            <input type="checkbox" class="form-check-input user-checkbox" 
-                                                                   value="{{ $referralUser->id }}" data-id="{{ $referralUser->id }}">
-                                                        @else
-                                                            <i class="fas fa-lock text-muted" title="Payment completed - locked"></i>
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>
-                                                        <div class="fw-medium">{{ $referralUser->name }}</div>
-                                                        @if($referralUser->user)
-                                                            <small class="text-success"><i class="fas fa-check-circle me-1"></i>Linked User</small>
-                                                        @endif
-                                                        @if($referralUser->notes)
-                                                            <div class="text-muted small" title="{{ $referralUser->notes }}">
-                                                                <i class="fas fa-sticky-note me-1"></i>{{ Str::limit($referralUser->notes, 25) }}
-                                                            </div>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        @if($referralUser->email)
-                                                            <div><a href="mailto:{{ $referralUser->email }}" class="text-decoration-none small">{{ $referralUser->email }}</a></div>
-                                                        @endif
-                                                        @if($referralUser->phone_number)
-                                                            <div><a href="tel:{{ $referralUser->phone_number }}" class="text-decoration-none small">{{ $referralUser->phone_number }}</a></div>
-                                                        @endif
-                                                        @if(!$referralUser->email && !$referralUser->phone_number)
-                                                            <span class="text-muted">—</span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-center">
-                                                        @if($referralUser->isPaid())
-                                                            <span class="badge bg-success">
-                                                                <i class="fas fa-check me-1"></i>Paid
-                                                            </span>
-                                                        @else
-                                                            <span class="badge bg-warning text-dark">
-                                                                <i class="fas fa-clock me-1"></i>Pending
-                                                            </span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-end">
-                                                        @if($referralUser->isPaid())
-                                                            <span class="text-success fw-medium">₹{{ number_format($referralUser->payment_amount, 2) }}</span>
-                                                        @else
-                                                            <span class="text-muted">₹{{ number_format($referral->amount, 2) }}</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        @if($referralUser->isPaid() && $referralUser->paid_at)
-                                                            <small class="text-muted">{{ $referralUser->paid_at->format('d M Y') }}</small>
-                                                            @if($referralUser->payment_notes)
-                                                                <div class="text-muted small" title="{{ $referralUser->payment_notes }}">
-                                                                    <i class="fas fa-comment me-1"></i>{{ Str::limit($referralUser->payment_notes, 15) }}
+                                @if($referralUsers->count() > 0 || $referralEarnings->count() > 0)
+                                    <!-- Manual Referral Users -->
+                                    @if($referralUsers->count() > 0)
+                                        <div class="mb-4">
+                                            <h6 class="text-muted mb-3">
+                                                <i class="fas fa-user-friends me-2"></i>Manual Referrals ({{ $paymentStats['manual_users'] }})
+                                            </h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle" id="referralUsersTable">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 40px;">
+                                                                <input type="checkbox" class="form-check-input" id="selectAllUsers">
+                                                            </th>
+                                                            <th>#</th>
+                                                            <th>User Details</th>
+                                                            <th>Contact</th>
+                                                            <th class="text-center">Payment Status</th>
+                                                            <th class="text-end">Amount</th>
+                                                            <th>Paid On</th>
+                                                            <th class="text-end">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($referralUsers as $index => $referralUser)
+                                                        <tr class="{{ $referralUser->isPaid() ? 'table-success' : '' }}">
+                                                            <td>
+                                                                @if($referralUser->isPending())
+                                                                    <input type="checkbox" class="form-check-input user-checkbox" 
+                                                                           value="{{ $referralUser->id }}" data-id="{{ $referralUser->id }}">
+                                                                @else
+                                                                    <i class="fas fa-lock text-muted" title="Payment completed - locked"></i>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>
+                                                                <div class="fw-medium">{{ $referralUser->name }}</div>
+                                                                @if($referralUser->user)
+                                                                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>Linked User</small>
+                                                                @endif
+                                                                @if($referralUser->notes)
+                                                                    <div class="text-muted small" title="{{ $referralUser->notes }}">
+                                                                        <i class="fas fa-sticky-note me-1"></i>{{ Str::limit($referralUser->notes, 25) }}
+                                                                    </div>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($referralUser->email)
+                                                                    <div><a href="mailto:{{ $referralUser->email }}" class="text-decoration-none small">{{ $referralUser->email }}</a></div>
+                                                                @endif
+                                                                @if($referralUser->phone_number)
+                                                                    <div><a href="tel:{{ $referralUser->phone_number }}" class="text-decoration-none small">{{ $referralUser->phone_number }}</a></div>
+                                                                @endif
+                                                                @if(!$referralUser->email && !$referralUser->phone_number)
+                                                                    <span class="text-muted">—</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if($referralUser->isPaid())
+                                                                    <span class="badge bg-success">
+                                                                        <i class="fas fa-check me-1"></i>Paid
+                                                                    </span>
+                                                                @else
+                                                                    <span class="badge bg-warning text-dark">
+                                                                        <i class="fas fa-clock me-1"></i>Pending
+                                                                    </span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-end">
+                                                                @if($referralUser->isPaid())
+                                                                    <span class="text-success fw-medium">₹{{ number_format($referralUser->payment_amount, 2) }}</span>
+                                                                @else
+                                                                    <span class="text-muted">₹{{ number_format($referral->amount, 2) }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($referralUser->isPaid() && $referralUser->paid_at)
+                                                                    <small class="text-muted">{{ $referralUser->paid_at->format('d M Y') }}</small>
+                                                                    @if($referralUser->payment_notes)
+                                                                        <div class="text-muted small" title="{{ $referralUser->payment_notes }}">
+                                                                            <i class="fas fa-comment me-1"></i>{{ Str::limit($referralUser->payment_notes, 15) }}
+                                                                        </div>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-muted">—</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <div class="btn-group btn-group-sm" role="group">
+                                                                    @if($referralUser->isPending())
+                                                                        <button type="button" class="btn btn-success rounded-start-pill px-3 mark-paid-btn" 
+                                                                                data-id="{{ $referralUser->id }}"
+                                                                                data-name="{{ $referralUser->name }}"
+                                                                                data-amount="{{ $referral->amount }}"
+                                                                                title="Mark as Paid">
+                                                                            <i class="fas fa-check"></i>
+                                                                        </button>
+                                                                        <form action="{{ route('admin.referrals.users.destroy', [$referral, $referralUser]) }}" method="POST" class="d-inline delete-form">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button type="button" class="btn btn-outline-danger rounded-end-pill px-3 delete-btn" title="Remove User">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    @else
+                                                                        <button type="button" class="btn btn-secondary rounded-pill px-3" disabled title="Payment completed - cannot modify">
+                                                                            <i class="fas fa-lock me-1"></i>Locked
+                                                                        </button>
+                                                                    @endif
                                                                 </div>
-                                                            @endif
-                                                        @else
-                                                            <span class="text-muted">—</span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <div class="btn-group btn-group-sm" role="group">
-                                                            @if($referralUser->isPending())
-                                                                <button type="button" class="btn btn-success rounded-start-pill px-3 mark-paid-btn" 
-                                                                        data-id="{{ $referralUser->id }}"
-                                                                        data-name="{{ $referralUser->name }}"
-                                                                        data-amount="{{ $referral->amount }}"
-                                                                        title="Mark as Paid">
-                                                                    <i class="fas fa-check"></i>
-                                                                </button>
-                                                                <form action="{{ route('admin.referrals.users.destroy', [$referral, $referralUser]) }}" method="POST" class="d-inline delete-form">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                    <button type="button" class="btn btn-outline-danger rounded-end-pill px-3 delete-btn" title="Remove User">
-                                                                        <i class="fas fa-trash"></i>
-                                                                    </button>
-                                                                </form>
-                                                            @else
-                                                                <button type="button" class="btn btn-secondary rounded-pill px-3" disabled title="Payment completed - cannot modify">
-                                                                    <i class="fas fa-lock me-1"></i>Locked
-                                                                </button>
-                                                            @endif
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                            </td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Vendor Referral Earnings -->
+                                    @if($referralEarnings->count() > 0)
+                                        <div class="mb-4">
+                                            <h6 class="text-muted mb-3">
+                                                <i class="fas fa-store me-2"></i>Vendor Referrals ({{ $paymentStats['vendor_users'] }})
+                                                <span class="badge bg-info ms-2">Subscription Based</span>
+                                            </h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Referred Vendor</th>
+                                                            <th>Contact</th>
+                                                            <th>Subscription</th>
+                                                            <th class="text-center">Status</th>
+                                                            <th class="text-end">Commission</th>
+                                                            <th>Date</th>
+                                                            <th class="text-end">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($referralEarnings as $earning)
+                                                        <tr class="{{ in_array($earning->status, ['paid', 'approved']) ? 'table-success' : '' }}">
+                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>
+                                                                @if($earning->referredVendor)
+                                                                    <div class="fw-medium">{{ $earning->referredVendor->store_name }}</div>
+                                                                    <small class="text-muted">{{ $earning->referredVendor->owner_name }}</small>
+                                                                @else
+                                                                    <span class="text-muted">Vendor Deleted</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($earning->referredVendor)
+                                                                    <div><a href="mailto:{{ $earning->referredVendor->email }}" class="text-decoration-none small">{{ $earning->referredVendor->email }}</a></div>
+                                                                    @if($earning->referredVendor->phone_number)
+                                                                        <div><a href="tel:{{ $earning->referredVendor->phone_number }}" class="text-decoration-none small">{{ $earning->referredVendor->phone_number }}</a></div>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-muted">—</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                <div class="text-muted small">₹{{ number_format($earning->subscription_amount, 2) }}</div>
+                                                                <small class="text-muted">{{ $earning->commission_percentage }}% commission</small>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if($earning->status === 'paid')
+                                                                    <span class="badge bg-success">
+                                                                        <i class="fas fa-check me-1"></i>Paid
+                                                                    </span>
+                                                                @elseif($earning->status === 'approved')
+                                                                    <span class="badge bg-info">
+                                                                        <i class="fas fa-check-circle me-1"></i>Approved
+                                                                    </span>
+                                                                @elseif($earning->status === 'pending')
+                                                                    <span class="badge bg-warning text-dark">
+                                                                        <i class="fas fa-clock me-1"></i>Pending
+                                                                    </span>
+                                                                @else
+                                                                    <span class="badge bg-danger">
+                                                                        <i class="fas fa-times me-1"></i>{{ ucfirst($earning->status) }}
+                                                                    </span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <span class="fw-medium {{ in_array($earning->status, ['paid', 'approved']) ? 'text-success' : 'text-muted' }}">
+                                                                    ₹{{ number_format($earning->commission_amount, 2) }}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                @if($earning->paid_at)
+                                                                    <small class="text-muted">{{ $earning->paid_at->format('d M Y') }}</small>
+                                                                @elseif($earning->approved_at)
+                                                                    <small class="text-muted">{{ $earning->approved_at->format('d M Y') }}</small>
+                                                                @else
+                                                                    <small class="text-muted">{{ $earning->created_at->format('d M Y') }}</small>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <a href="{{ route('admin.referral-earnings.index', ['search' => $earning->id]) }}" 
+                                                                   class="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                                                                   title="View Details">
+                                                                    <i class="fas fa-eye"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    @endif
                                 @else
                                     <div class="text-center py-5">
                                         <div class="text-muted">
                                             <i class="fas fa-users fa-3x mb-3"></i>
                                             <p class="mb-0">No users have been referred yet</p>
-                                            <p class="small">Add users manually using the form on the left</p>
+                                            <p class="small">Add users manually using the form on the left or share the referral code with vendors</p>
                                         </div>
                                     </div>
                                 @endif

@@ -118,6 +118,14 @@ class ProformaInvoice extends Model
     }
 
     /**
+     * Get the returns for this invoice.
+     */
+    public function returns()
+    {
+        return $this->hasMany(ProductReturn::class, 'proforma_invoice_id');
+    }
+
+    /**
      * Scope a query to only include invoices for a specific user.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query

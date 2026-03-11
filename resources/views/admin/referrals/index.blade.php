@@ -92,7 +92,7 @@
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 gap-md-0">
                             <div class="mb-2 mb-md-0">
                                 <h5 class="card-title mb-0 fw-bold">Referral Codes</h5>
-                                <p class="mb-0 text-muted small">Manage all referral codes and track payments</p>
+                                <p class="mb-0 text-muted small">Manage all referral codes and track payments. Vendor referral codes are auto-generated upon registration.</p>
                             </div>
                             <a href="{{ route('admin.referrals.create') }}" class="btn btn-sm btn-theme rounded-pill px-3">
                                 <i class="fas fa-plus me-1"></i>Create Referral Code
@@ -139,6 +139,13 @@
                                             @if($referral->phone_number)
                                                 <small class="text-muted">{{ $referral->phone_number }}</small>
                                             @endif
+                                            @if($referral->vendor)
+                                                <div class="mt-1">
+                                                    <span class="badge bg-info text-white" title="Auto-generated from vendor registration">
+                                                        <i class="fas fa-store me-1"></i>Vendor
+                                                    </span>
+                                                </div>
+                                            @endif
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
@@ -153,25 +160,25 @@
                                         </td>
                                         <td class="text-center">
                                             <a href="{{ route('admin.referrals.users', $referral) }}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="View Referred Users">
-                                                <i class="fas fa-users me-1"></i>{{ $referral->referral_users_count }}
+                                                <i class="fas fa-users me-1"></i>{{ $referral->total_referred_users ?? $referral->referral_users_count }}
                                             </a>
                                         </td>
                                         <td class="text-center">
-                                            <span class="badge bg-success">{{ $referral->paid_users_count ?? 0 }}</span>
+                                            <span class="badge bg-success">{{ $referral->total_paid_users ?? ($referral->paid_users_count ?? 0) }}</span>
                                         </td>
                                         <td class="text-center">
-                                            @if(($referral->pending_users_count ?? 0) > 0)
-                                                <span class="badge bg-warning text-dark">{{ $referral->pending_users_count }}</span>
+                                            @if(($referral->total_pending_users ?? ($referral->pending_users_count ?? 0)) > 0)
+                                                <span class="badge bg-warning text-dark">{{ $referral->total_pending_users ?? $referral->pending_users_count }}</span>
                                             @else
                                                 <span class="badge bg-secondary">0</span>
                                             @endif
                                         </td>
                                         <td class="text-end">
-                                            <span class="text-success fw-medium">₹{{ number_format($referral->total_paid_amount ?? 0, 2) }}</span>
+                                            <span class="text-success fw-medium">₹{{ number_format($referral->total_paid_amount_combined ?? ($referral->total_paid_amount ?? 0), 2) }}</span>
                                         </td>
                                         <td class="text-end">
-                                            @if(($referral->calculated_pending_amount ?? 0) > 0)
-                                                <span class="text-danger fw-medium">₹{{ number_format($referral->calculated_pending_amount, 2) }}</span>
+                                            @if(($referral->total_pending_amount_combined ?? ($referral->calculated_pending_amount ?? 0)) > 0)
+                                                <span class="text-danger fw-medium">₹{{ number_format($referral->total_pending_amount_combined ?? $referral->calculated_pending_amount, 2) }}</span>
                                             @else
                                                 <span class="text-muted">₹0.00</span>
                                             @endif

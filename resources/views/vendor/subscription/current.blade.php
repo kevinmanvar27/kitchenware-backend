@@ -17,7 +17,7 @@
                         <h4 class="mb-0 fw-bold">Current Subscription</h4>
                         <p class="text-muted mb-0">Manage your subscription plan</p>
                     </div>
-                    <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-primary rounded-pill">
+                    <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-theme-primary rounded-pill">
                         <i class="fas fa-th-large me-2"></i>View All Plans
                     </a>
                 </div>
@@ -65,7 +65,7 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="text-muted small mb-1">Started On</label>
                                         <p class="mb-0">
-                                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                            <i class="fas fa-calendar-alt text-theme me-2"></i>
                                             <span class="fw-semibold">{{ $subscription->starts_at ? $subscription->starts_at->format('M d, Y') : 'N/A' }}</span>
                                         </p>
                                     </div>
@@ -147,7 +147,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
-                                    <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-primary rounded-pill">
+                                    <a href="{{ route('vendor.subscription.plans') }}" class="btn btn-theme-primary rounded-pill">
                                         <i class="fas fa-arrow-up me-2"></i>Upgrade Plan
                                     </a>
                                     
@@ -165,15 +165,15 @@
                         </div>
 
                         <!-- Subscription Info Card -->
-                        <div class="card border-0 shadow-sm border-primary">
+                        <div class="card border-0 shadow-sm border-theme">
                             <div class="card-body">
-                                <h6 class="card-title text-primary mb-3">
+                                <h6 class="card-title text-theme mb-3">
                                     <i class="fas fa-info-circle me-2"></i>Need Help?
                                 </h6>
                                 <p class="card-text small mb-3">
                                     If you have any questions about your subscription or need to make changes, please contact our support team.
                                 </p>
-                                <a href="mailto:support@example.com" class="btn btn-sm btn-outline-primary rounded-pill">
+                                <a href="mailto:support@example.com" class="btn btn-sm btn-theme-outline rounded-pill">
                                     <i class="fas fa-envelope me-1"></i>Contact Support
                                 </a>
                             </div>
@@ -228,6 +228,44 @@
 
 .font-monospace {
     font-family: 'Courier New', monospace;
+}
+
+/* Theme-based button styles */
+.btn-theme-primary {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+}
+
+.btn-theme-primary:hover {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-theme-outline {
+    color: var(--theme-color);
+    border-color: var(--theme-color);
+    background-color: transparent;
+}
+
+.btn-theme-outline:hover {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.text-theme {
+    color: var(--theme-color) !important;
+}
+
+.border-theme {
+    border-color: var(--theme-color) !important;
 }
 </style>
 @endpush
