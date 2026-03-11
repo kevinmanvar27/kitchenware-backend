@@ -37,7 +37,10 @@ class UserGroupSeeder extends Seeder
         ];
 
         foreach ($userGroups as $group) {
-            UserGroup::create($group);
+            // Check if user group already exists
+            if (!UserGroup::where('name', $group['name'])->exists()) {
+                UserGroup::create($group);
+            }
         }
     }
 }

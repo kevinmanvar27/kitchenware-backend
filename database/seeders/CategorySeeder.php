@@ -43,7 +43,12 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $categoryData) {
-            $category = Category::create($categoryData);
+            // Check if category already exists
+            $category = Category::where('slug', $categoryData['slug'])->first();
+            
+            if (!$category) {
+                $category = Category::create($categoryData);
+            }
 
             // Create sample subcategories for each category
             $subcategories = [
@@ -64,7 +69,10 @@ class CategorySeeder extends Seeder
             ];
 
             foreach ($subcategories as $subcategoryData) {
-                SubCategory::create($subcategoryData);
+                // Check if subcategory already exists
+                if (!SubCategory::where('slug', $subcategoryData['slug'])->exists()) {
+                    SubCategory::create($subcategoryData);
+                }
             }
         }
     }

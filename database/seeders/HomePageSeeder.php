@@ -15,6 +15,12 @@ class HomePageSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if we already have media and categories seeded
+        if (Media::count() > 0 && Category::count() > 0 && Product::count() > 0) {
+            $this->command->info('Home page data already seeded. Skipping...');
+            return;
+        }
+
         // Create some media items for categories and products
         $media1 = Media::factory()->create([
             'name' => 'Category 1 Image',
@@ -37,44 +43,54 @@ class HomePageSeeder extends Seeder
             'path' => 'media/product1.jpg',
         ]);
         
-        // Create some categories with unique slugs
-        $category1 = Category::factory()->create([
-            'name' => 'Electronics',
-            'slug' => 'electronics-' . time(),
-            'description' => 'Electronic devices and gadgets',
-            'image_id' => $media1->id,
-            'is_active' => true,
-        ]);
+        // Get existing categories or create new ones with unique slugs
+        $category1 = Category::where('slug', 'electronics')->first();
+        if (!$category1) {
+            $category1 = Category::factory()->create([
+                'name' => 'Electronics',
+                'slug' => 'electronics-homepage-' . time(),
+                'description' => 'Electronic devices and gadgets',
+                'image_id' => $media1->id,
+                'is_active' => true,
+            ]);
+        }
         
-        $category2 = Category::factory()->create([
-            'name' => 'Clothing',
-            'slug' => 'clothing-' . time(),
-            'description' => 'Fashion and clothing items',
-            'image_id' => $media2->id,
-            'is_active' => true,
-        ]);
+        $category2 = Category::where('slug', 'clothing')->first();
+        if (!$category2) {
+            $category2 = Category::factory()->create([
+                'name' => 'Clothing',
+                'slug' => 'clothing-homepage-' . time(),
+                'description' => 'Fashion and clothing items',
+                'image_id' => $media2->id,
+                'is_active' => true,
+            ]);
+        }
         
-        // Create some products
-        Product::factory()->create([
-            'name' => 'Smartphone',
-            'description' => 'Latest model smartphone with advanced features',
-            'mrp' => 599.99,
-            'selling_price' => 499.99,
-            'in_stock' => true,
-            'stock_quantity' => 50,
-            'status' => 'active',
-            'main_photo_id' => $media3->id,
-        ]);
+        // Create some products only if they don't exist
+        if (!Product::where('name', 'Smartphone')->exists()) {
+            Product::factory()->create([
+                'name' => 'Smartphone',
+                'description' => 'Latest model smartphone with advanced features',
+                'mrp' => 599.99,
+                'selling_price' => 499.99,
+                'in_stock' => true,
+                'stock_quantity' => 50,
+                'status' => 'active',
+                'main_photo_id' => $media3->id,
+            ]);
+        }
         
-        Product::factory()->create([
-            'name' => 'Laptop',
-            'description' => 'High performance laptop for work and gaming',
-            'mrp' => 1299.99,
-            'selling_price' => 1099.99,
-            'in_stock' => true,
-            'stock_quantity' => 25,
-            'status' => 'active',
-            'main_photo_id' => $media3->id,
-        ]);
+        if (!Product::where('name', 'Laptop')->exists()) {
+            Product::factory()->create([
+                'name' => 'Laptop',
+                'description' => 'High performance laptop for work and gaming',
+                'mrp' => 1299.99,
+                'selling_price' => 1099.99,
+                'in_stock' => true,
+                'stock_quantity' => 25,
+                'status' => 'active',
+                'main_photo_id' => $media3->id,
+            ]);
+        }
     }
 }
