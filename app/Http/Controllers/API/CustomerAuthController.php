@@ -767,4 +767,90 @@ class CustomerAuthController extends Controller
             ]
         ]);
     }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/customer/delete-account",
+     *     summary="Delete customer account",
+     *     description="Permanently delete the authenticated customer's account. This action cannot be undone.",
+     *     operationId="customerDeleteAccount",
+     *     tags={"Customer Auth"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"password"},
+     *             @OA\Property(property="password", type="string", format="password", example="Password123", description="Customer's current password for confirmation")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Account deleted successfully"),
+     *     @OA\Response(response=401, description="Invalid password"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function deleteAccount(Request $request)
+    {
+        $customer = $request->user();
+
+        // Validate password confirmation
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation Error',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        // Verify password
+        if (!Hash::check($request->password, $customer->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid password. Please enter your correct password to delete your account.',
+                'data' => null
+            ], 401);
+        }
+
+        try {
+            // Delete profile avatar if exists
+            if ($customer->profile_avatar) {
+                Storage::disk('public')->delete($customer->profile_avatar);
+            }
+
+            // Delete all customer's tokens
+            $customer->tokens()->delete();
+
+            // Delete related data (optional - you can customize this based on your needs)
+            // Delete customer's cart items
+            $customer->cartItems()->delete();
+            
+            // Delete customer's wishlist items
+            $customer->wishlistItems()->delete();
+            
+            // Note: You might want to keep invoices for record-keeping
+            // If you want to delete invoices too, uncomment the line below:
+            // $customer->invoices()->delete();
+
+            // Delete the customer account
+            $customer->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Your account has been permanently deleted. We\'re sorry to see you go.',
+                'data' => null
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete account. Please try again or contact support.',
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
 }

@@ -345,9 +345,11 @@ Route::prefix('v1/customer')->middleware(['auth:sanctum', 'vendor.customer'])->g
     // Customer Auth
     Route::post('/logout', [CustomerAuthController::class, 'logout']);
     Route::get('/profile', [CustomerAuthController::class, 'profile']);
+    Route::get('/account', [CustomerAuthController::class, 'profile']); // Alias for /profile
     Route::put('/profile', [CustomerAuthController::class, 'updateProfile']);
     Route::put('/change-password', [CustomerAuthController::class, 'changePassword']);
     Route::post('/avatar', [CustomerAuthController::class, 'uploadAvatar']);
+    Route::delete('/delete-account', [CustomerAuthController::class, 'deleteAccount']);
     
     // Device Token Registration for Push Notifications
     Route::post('/register-device', [CustomerAuthController::class, 'registerDeviceToken']);
